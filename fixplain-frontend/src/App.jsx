@@ -28,6 +28,7 @@ function App() {
         throw new Error('Failed to fetch analysis from server.');
       }
 
+      
       // Getting the real JSON back from Gemini
       const data = await response.json();
       setAnalysisResult(data);
