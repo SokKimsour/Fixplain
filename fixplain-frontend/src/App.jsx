@@ -16,7 +16,7 @@ function App() {
 
     try {
       // Calling your new Node.js backend
-      const response = await fetch('https://ffxplain-api.onrender.com/', {
+      const response = await fetch('https://ffxplain-api.onrender.com/api/fix', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
