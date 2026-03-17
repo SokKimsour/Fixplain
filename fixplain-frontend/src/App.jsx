@@ -9,6 +9,15 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
+  
+  // NEW: The function that handles copying the code to the clipboard
+  const handleCopy = (code) => {
+    navigator.clipboard.writeText(code);
+    setIsCopied(true);
+    // Revert the button text back to "Copy Code" after 2 seconds
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   // 2. The function that runs when you click the button
   const handleAnalyze = async () => {
@@ -30,8 +39,7 @@ function App() {
         throw new Error('Failed to fetch analysis from server.');
       }
 
-
-      // Getting the real JSON back from Gemini
+      // Getting the real JSON back from the AI
       const data = await response.json();
       setAnalysisResult(data);
 
@@ -111,12 +119,30 @@ function App() {
                   </ul>
                 </div>
 
-                {/* Fixed Code */}
-                <div className="bg-white shadow-sm rounded-lg p-6 border-l-4 border-green-500">
-                  <h2 className="font-semibold text-lg mb-2 text-gray-800">✨ Fixed Code</h2>
-                  <pre className="bg-gray-900 rounded-md p-4 overflow-x-auto text-sm font-mono text-green-400">
-                    {analysisResult.fixedCode}
-                  </pre>
+                {/* Fixed Code (NEW DESIGN WITH SYNTAX HIGHLIGHTER) */}
+                <div className="bg-white shadow-sm rounded-lg p-0 border-l-4 border-green-500 overflow-hidden">
+                  <div className="flex justify-between items-center bg-gray-50 border-b border-gray-200 px-6 py-3">
+                    <h2 className="font-semibold text-lg text-gray-800">✨ Fixed Code</h2>
+                    
+                    {/* The Copy Button */}
+                    <button 
+                      onClick={() => handleCopy(analysisResult.fixedCode)}
+                      className="text-sm px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      {isCopied ? "✅ Copied!" : "📋 Copy Code"}
+                    </button>
+                  </div>
+                  
+                  {/* The VS Code Style Editor Window */}
+                  <div className="text-sm">
+                    <SyntaxHighlighter 
+                      language="javascript" 
+                      style={vscDarkPlus}
+                      customStyle={{ margin: 0, padding: '1.5rem', borderRadius: '0 0 0.5rem 0.5rem' }}
+                    >
+                      {analysisResult.fixedCode}
+                    </SyntaxHighlighter>
+                  </div>
                 </div>
 
                 {/* Explanation */}
