@@ -113,7 +113,9 @@ const normalizeBugs = bugs => !bugs?.length ? [] : bugs.map(b => typeof b==='str
 
 const computeHealthScore = bugs => {
   if (!bugs.length) return 100;
-  const deductions = bugs.reduce((sum, b) => sum + (b.severity==='high'?20:b.severity==='medium'?10:5), 0);
+  const realBugs = bugs.filter(b => b.severity === 'high' || b.severity === 'medium');
+  if (!realBugs.length) return 100; // only low/style issues = still full health
+  const deductions = realBugs.reduce((sum, b) => sum + (b.severity === 'high' ? 25 : 12), 0);
   return Math.max(0, 100 - deductions);
 };
 
@@ -528,7 +530,14 @@ export default function App() {
     try {
       const res = await fetch('https://ffxplain-api.onrender.com/api/fix', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ codeInput, language, mode, locale }),
+        body: JSON.stringify({
+          codeInput,
+          language,
+          mode,
+          locale,
+          // Send previous bugs so AI knows what was already fixed
+          previousBugs: analysisResult ? normalizeBugs(analysisResult.bugsFound).map(b => b.issue) : [],
+        }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();

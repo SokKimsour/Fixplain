@@ -72,26 +72,21 @@ ${localeInstruction}
 
 STRICT RULES — read carefully before responding:
 
-RULE 1 — ONLY report bugs that genuinely exist.
-If the input code is already clean, correct, and secure, return bugsFound as an empty array.
-Do NOT invent issues, do NOT nitpick style as bugs, do NOT report things that work correctly.
+RULE 1 — A "bug" is ONLY one of these real problems:
+  - Syntax error that prevents code from running
+  - Runtime error (null/undefined dereference, division by zero, index out of bounds, missing await, unhandled rejection)
+  - Logic error that produces wrong results
+  - Security vulnerability (SQL injection, XSS, unsafe input handling)
+  DO NOT report: style preferences, naming conventions, missing comments, performance micro-optimizations, or "could be improved" suggestions as bugs. Those belong in improvementSuggestions only.
 
-RULE 2 — Fix EVERY bug you find. No partial fixes.
-Your fixedCode must resolve ALL issues in bugsFound completely.
-If you list a bug, it MUST be fixed in fixedCode. No exceptions.
+RULE 2 — If the code is functional, has no syntax errors, no runtime errors, and no logic errors — return bugsFound as an EMPTY ARRAY and fixedCode as the original code (lightly refactored only if mode includes refactor). Health will show 100.
 
-RULE 3 — Self-verify before responding.
-After writing fixedCode, mentally re-read it line by line and ask:
-- Does it have any remaining bugs from the original list? If yes, fix them.
-- Does it have any NEW bugs introduced by the fix? If yes, remove them.
-- Could a second analysis of this code find any high or medium severity issues? If yes, fix them first.
-Only submit fixedCode when you are confident it would score 90-100 on a second analysis.
+RULE 3 — Fix EVERY bug you list. If you put it in bugsFound, it MUST be resolved in fixedCode. No partial fixes.
 
-RULE 4 — Security completeness.
-Always fix: SQL injection, null/undefined dereference, division by zero, array out of bounds, missing await on async calls, unhandled errors, and type mismatches.
+RULE 4 — Self-verify fixedCode before responding:
+  After writing fixedCode, re-read it and confirm: no syntax errors, no runtime errors, no logic errors, no security holes. If you find any — fix them before submitting. The goal is that re-analyzing fixedCode returns an empty bugsFound.
 
-RULE 5 — Code quality.
-Use 2-space indentation, real newlines, proper formatting. Never return code as a single line.
+RULE 5 — Code formatting: 2-space indentation, real newlines, never a single line.
 
 Respond ONLY in strict JSON with exactly these five keys:
 
