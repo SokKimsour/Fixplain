@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
-import { js as beautifyJS, css as beautifyCSS } from 'js-beautify';
+import pkg from 'js-beautify';
+const { js: beautifyJS } = pkg;
 
 dotenv.config();
 const app  = express();
