@@ -70,30 +70,44 @@ app.post('/api/fix', async (req, res) => {
 ${modeInstruction}
 ${localeInstruction}
 
-ANALYSIS RULES — follow these strictly:
+STRICT RULES — read carefully before responding:
 
-1. ONLY report real bugs. If the code is already secure, functional, and well-written — return an empty bugsFound array. Do NOT invent or nitpick issues that do not exist.
-2. If the input code is already clean and correct, fixedCode should be the same code (or only lightly refactored if mode includes refactor). Do not add unnecessary changes.
-3. If bugs DO exist, fix ALL of them completely — zero bugs should remain in fixedCode.
-4. Security: fix SQL injection, null pointer risks, division by zero, index out of bounds, unhandled promises, and any dangerous patterns.
-5. The fixedCode must be production-quality — if a user re-analyzes it, it should score 95–100 with zero high or medium bugs.
-6. Use correct indentation (2 spaces), proper formatting, and real newlines. Never return code as a single line.
+RULE 1 — ONLY report bugs that genuinely exist.
+If the input code is already clean, correct, and secure, return bugsFound as an empty array.
+Do NOT invent issues, do NOT nitpick style as bugs, do NOT report things that work correctly.
+
+RULE 2 — Fix EVERY bug you find. No partial fixes.
+Your fixedCode must resolve ALL issues in bugsFound completely.
+If you list a bug, it MUST be fixed in fixedCode. No exceptions.
+
+RULE 3 — Self-verify before responding.
+After writing fixedCode, mentally re-read it line by line and ask:
+- Does it have any remaining bugs from the original list? If yes, fix them.
+- Does it have any NEW bugs introduced by the fix? If yes, remove them.
+- Could a second analysis of this code find any high or medium severity issues? If yes, fix them first.
+Only submit fixedCode when you are confident it would score 90-100 on a second analysis.
+
+RULE 4 — Security completeness.
+Always fix: SQL injection, null/undefined dereference, division by zero, array out of bounds, missing await on async calls, unhandled errors, and type mismatches.
+
+RULE 5 — Code quality.
+Use 2-space indentation, real newlines, proper formatting. Never return code as a single line.
 
 Respond ONLY in strict JSON with exactly these five keys:
 
 - "bugsFound": array of objects each with:
     - "issue": clear description of the bug
     - "severity": "high" | "medium" | "low"
-    - "lineNumber": integer line number (best estimate) or null
-  Return an EMPTY ARRAY if the code has no real bugs, or if mode is 'refactor'.
+    - "lineNumber": integer line number or null
+  EMPTY ARRAY if code has no real bugs or mode is 'refactor'.
 
-- "fixedCode": production-quality corrected code with proper indentation and newlines. No markdown fences. If code was already correct, return it as-is (or lightly refactored).
+- "fixedCode": fully corrected production-quality code. Every bug in bugsFound must be resolved. Properly indented with real newlines. No markdown fences.
 
-- "commentedCode": fixedCode with a JSDoc-style comment above each function explaining what it does, its parameters, and return value. No markdown fences.
+- "commentedCode": fixedCode with JSDoc-style comment above each function (what it does, params, return value). No markdown fences.
 
-- "explanation": plain-language explanation of what was changed and why. If nothing was wrong, say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
+- "explanation": plain-language explanation of every change made. If code was already clean, say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
 
-- "improvementSuggestions": exactly 3 specific, actionable tips to further improve this code. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}`;
+- "improvementSuggestions": exactly 3 specific actionable tips to further improve this code. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}`;
 
   try {
     const chat = await groq.chat.completions.create({
@@ -103,7 +117,8 @@ Respond ONLY in strict JSON with exactly these five keys:
       ],
       model: 'llama-3.3-70b-versatile',
       response_format: { type: 'json_object' },
-      temperature: 0.1,
+      temperature: 0,
+      max_tokens: 4096,
     });
 
     const result = JSON.parse(chat.choices[0].message.content);
@@ -141,7 +156,8 @@ Respond ONLY in strict JSON with one key:
       ],
       model: 'llama-3.3-70b-versatile',
       response_format: { type: 'json_object' },
-      temperature: 0.1,
+      temperature: 0,
+      max_tokens: 4096,
     });
 
     const result = JSON.parse(chat.choices[0].message.content);
