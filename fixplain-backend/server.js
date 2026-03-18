@@ -27,6 +27,8 @@ app.post('/api/fix', async (req, res) => {
 ${modeInstruction}
 ${localeInstruction}
 
+IMPORTANT: All code fields must be properly formatted with real newlines and correct indentation — never return code as a single line.
+
 Respond ONLY in strict JSON with exactly these five keys:
 
 - "bugsFound": array of objects, each with:
