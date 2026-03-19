@@ -6,8 +6,6 @@ import { GoogleGenAI } from '@google/genai';
 import pkg from 'js-beautify';
 const { js: beautifyJS } = pkg;
 
-import { GoogleGenAI } from '@google/genai';
-
 dotenv.config();
 const app = express();
 
