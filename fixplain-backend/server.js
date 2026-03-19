@@ -73,6 +73,30 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+// ── Simple in-memory response cache ──────────────────────────────────────────
+// Caches results for identical (code+language+mode+locale) combos for 10 min.
+// Saves API quota when multiple users paste the same example snippets.
+const responseCache = new Map();
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
+function hashKey(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = Math.imul(31, h) + str.charCodeAt(i) | 0; }
+  return h.toString(36);
+}
+
+function getCached(key) {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL_MS) { responseCache.delete(key); return null; }
+  return entry.data;
+}
+
+setInterval(() => {
+  const cutoff = Date.now() - CACHE_TTL_MS;
+  for (const [k, v] of responseCache) { if (v.ts < cutoff) responseCache.delete(k); }
+}, 5 * 60 * 1000);
+
 // ── Input size guard ──────────────────────────────────────────────────────────
 const MAX_CODE_CHARS = 12000;
 
@@ -305,13 +329,23 @@ RULE 4 — Self-verify fixedCode before responding:
 RULE 5 — Code formatting: 2-space indentation, real newlines, never a single line.
 
 Respond ONLY in strict JSON with exactly these five keys:
-- "bugsFound": array of objects each with "issue" (string), "severity" ("high"|"medium"|"low"), "lineNumber" (integer or null). EMPTY ARRAY if no real bugs or mode is 'refactor'.
+- "bugsFound": array of objects each with "issue" (string), "severity" ("high"|"medium"|"low"), "lineNumber" (integer or null), "confidence" (integer 0-100, how certain you are this is a real bug — 100 = absolutely certain, 70 = likely, below 60 = do not report). EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
-- "explanation": plain-language explanation of every change. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
+- "explanation": plain-language explanation referencing specific line numbers for each change, e.g. "Line 7: changed = to === to fix assignment bug. Line 23: added empty array guard to prevent division by zero." If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
 - "improvementSuggestions": exactly 3 specific actionable tips. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}`;
 
   try {
+    // Check cache first — skip if wasAlreadyFixed (re-analysis context matters)
+    const cacheKey = hashKey(`${language}:${mode}:${locale}:${codeInput}`);
+    if (!wasAlreadyFixed && previousBugs.length === 0) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        console.log('[Cache] Hit');
+        return res.json({ ...cached, _provider: 'Cache' });
+      }
+    }
+
     const { result, provider } = await callWithFallback(
       systemPrompt,
       `Analyze this ${language} code:\n${codeInput}`
@@ -319,9 +353,10 @@ Respond ONLY in strict JSON with exactly these five keys:
 
     if (result.fixedCode)     result.fixedCode     = formatCode(result.fixedCode,     language);
     if (result.commentedCode) result.commentedCode = formatCode(result.commentedCode, language);
-
-    // Tell the frontend which provider answered — shown in the status bar
     result._provider = provider;
+
+    // Store in cache
+    if (!wasAlreadyFixed) responseCache.set(cacheKey, { data: result, ts: Date.now() });
 
     res.json(result);
   } catch (err) {

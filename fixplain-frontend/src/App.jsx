@@ -1,5 +1,5 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus, oneLight, dracula, atomDark, nord } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useState, useEffect, useCallback, useRef, Component } from 'react';
 import jsPDF from 'jspdf';
 import AnimatedBackground from './AnimatedBackground';
@@ -21,10 +21,18 @@ const i18n = {
     copied: 'Copied!', historyEmpty: 'Analysis result',
     shareBtn: 'Share', shareCopied: 'Link copied!',
     applyFix: 'Apply fix', applying: 'fixing...',
+    fixAll: '⚡ Fix all', fixingAll: 'fixing all...',
     tryExample: 'Try an example',
     codeHealth: 'Code Health',
     readyIn: 'Ready in',
     lines: 'lines', chars: 'chars',
+    gistImport: 'Import Gist', gistPlaceholder: 'Paste GitHub Gist URL or ID...', gistFetching: 'fetching...', gistError: 'Gist not found or private.',
+    autoDetected: 'Auto-detected',
+    shareImage: 'Save card', streakLabel: 'day streak',
+    theme: 'Theme',
+    diffNoChanges: '✓ No changes — code already matches fixed version',
+    confidenceLabel: 'confidence',
+    scoreBreakdown: 'Score breakdown',
     tour: {
       skip: 'Skip tour', next: 'Next', done: 'Done ✓',
       steps: [
@@ -62,10 +70,18 @@ const i18n = {
     copied: 'បានចម្លង!', historyEmpty: 'លទ្ធផលវិភាគ',
     shareBtn: 'ចែករំលែក', shareCopied: 'បានចម្លងតំណ!',
     applyFix: 'ជួសជុល', applying: 'កំពុងជួស...',
+    fixAll: '⚡ ជួសជុលទាំងអស់', fixingAll: 'កំពុងជួសជុល...',
     tryExample: 'សាកល្បងឧទាហរណ៍',
     codeHealth: 'សុខភាពកូដ',
     readyIn: 'រួចរាល់ក្នុង',
     lines: 'បន្ទាត់', chars: 'តួអក្សរ',
+    gistImport: 'នាំចូល Gist', gistPlaceholder: 'បិទភ្ជាប់ GitHub Gist URL...', gistFetching: 'កំពុងទាញ...', gistError: 'រកមិនឃើញ Gist។',
+    autoDetected: 'រកឃើញដោយស្វ័យប្រវត្តិ',
+    shareImage: 'រក្សាទុករូប', streakLabel: 'ថ្ងៃជាប់គ្នា',
+    theme: 'រចនា',
+    diffNoChanges: '✓ គ្មានការផ្លាស់ប្តូរ — កូដដូចគ្នា',
+    confidenceLabel: 'ជឿជាក់',
+    scoreBreakdown: 'ការបែងចែកពិន្ទុ',
     tour: {
       skip: 'រំលង', next: 'បន្ទាប់', done: 'រួចរាល់ ✓',
       steps: [
@@ -99,10 +115,32 @@ const LANGUAGES = [
   { value: 'python', label: 'Python' }, { value: 'csharp', label: 'C#' },
   { value: 'sql', label: 'SQL' }, { value: 'typescript', label: 'TypeScript' },
   { value: 'java', label: 'Java' }, { value: 'php', label: 'PHP' },
+  { value: 'ruby', label: 'Ruby' }, { value: 'go', label: 'Go' },
+  { value: 'rust', label: 'Rust' }, { value: 'swift', label: 'Swift' },
 ];
 const MODES = ['both', 'fix', 'refactor'];
 const TAB_KEYS = ['bugs', 'fixed', 'explain', 'suggest'];
-const EXT_MAP = { js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', py: 'python', cs: 'csharp', sql: 'sql', java: 'java', php: 'php' };
+const EXT_MAP = { js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', py: 'python', cs: 'csharp', sql: 'sql', java: 'java', php: 'php', rb: 'ruby', go: 'go', rs: 'rust', swift: 'swift' };
+
+// Syntax highlight themes — dark and light options
+const THEMES = {
+  dark:  { 'VS Dark': vscDarkPlus, 'Dracula': dracula, 'Atom Dark': atomDark, 'Nord': nord },
+  light: { 'One Light': oneLight },
+};
+
+// Language keyword hints for auto-detection on paste
+const LANG_HINTS = [
+  { lang: 'python',     patterns: [/^def\s+\w+\(/m, /^import\s+\w/m, /^from\s+\w+\s+import/m, /:\s*$\n\s+/m] },
+  { lang: 'typescript', patterns: [/:\s*(string|number|boolean|any|void)\b/, /interface\s+\w+\s*\{/, /=>\s*\w+\s*:/, /<\w+>/] },
+  { lang: 'sql',        patterns: [/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/im] },
+  { lang: 'java',       patterns: [/public\s+(class|static|void)\b/, /System\.out\.print/] },
+  { lang: 'csharp',     patterns: [/using\s+System[;.]/, /Console\.Write/, /namespace\s+\w+/] },
+  { lang: 'ruby',       patterns: [/^def\s+\w+/m, /\.each\s+do\s*\|/, /require\s+['"]/, /puts\s+/] },
+  { lang: 'go',         patterns: [/^package\s+\w+/m, /^func\s+\w+/m, /fmt\.Print/] },
+  { lang: 'rust',       patterns: [/^fn\s+\w+/m, /let\s+mut\s+/, /println!\(/, /use\s+std::/] },
+  { lang: 'swift',      patterns: [/^func\s+\w+/m, /var\s+\w+:\s*\w+/, /print\(/, /import\s+Foundation/] },
+  { lang: 'php',        patterns: [/^<\?php/m, /\$\w+\s*=/, /echo\s+/, /->/ ] },
+];
 const SEVERITY_STYLE = {
   high: { dark: { bg: 'rgba(248,113,113,0.12)', color: '#f87171' }, light: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' } },
   medium: { dark: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' }, light: { bg: 'rgba(217,119,6,0.1)', color: '#d97706' } },
@@ -379,25 +417,38 @@ function OnboardingTour({ c, t, onDone }) {
 }
 
 // ── Health Score Ring ─────────────────────────────────────────────────────────
-function HealthRing({ score, c, label, isMobile }) {
+function HealthRing({ score, c, label, isMobile, bugs, t }) {
   const r = 20, circ = 2 * Math.PI * r;
   const fill = (score / 100) * circ;
   const color = healthColor(score, c);
+  const highBugs   = bugs.filter(b => b.severity === 'high');
+  const medBugs    = bugs.filter(b => b.severity === 'medium');
+  const deductions = highBugs.length * 25 + medBugs.length * 12;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: c.bgSurface, borderRadius: 12, border: `1px solid ${c.borderSoft}`, width: isMobile ? '100%' : 'auto' }}>
-      <svg width={50} height={50} style={{ flexShrink: 0 }}>
-        <circle cx={25} cy={25} r={r} fill="none" stroke={c.border} strokeWidth={3} />
-        <circle cx={25} cy={25} r={r} fill="none" stroke={color} strokeWidth={3}
-          strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"
-          transform="rotate(-90 25 25)" style={{ transition: 'stroke-dasharray 0.8s ease' }} />
-        <text x={25} y={29} textAnchor="middle" fontFamily={mono} fontSize={11} fontWeight={600} fill={color}>{score}</text>
-      </svg>
-      <div>
-        <p style={{ fontFamily: mono, fontSize: 10, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>{label}</p>
-        <p style={{ fontFamily: mono, fontSize: 12, color, fontWeight: 600 }}>
-          {score >= 80 ? 'Healthy' : score >= 50 ? 'Needs work' : 'Critical'}
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 14px', background: c.bgSurface, borderRadius: 12, border: `1px solid ${c.borderSoft}`, width: isMobile ? '100%' : 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <svg width={50} height={50} style={{ flexShrink: 0 }}>
+          <circle cx={25} cy={25} r={r} fill="none" stroke={c.border} strokeWidth={3} />
+          <circle cx={25} cy={25} r={r} fill="none" stroke={color} strokeWidth={3}
+            strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"
+            transform="rotate(-90 25 25)" style={{ transition: 'stroke-dasharray 0.8s ease' }} />
+          <text x={25} y={29} textAnchor="middle" fontFamily={mono} fontSize={11} fontWeight={600} fill={color}>{score}</text>
+        </svg>
+        <div>
+          <p style={{ fontFamily: mono, fontSize: 10, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>{label}</p>
+          <p style={{ fontFamily: mono, fontSize: 12, color, fontWeight: 600 }}>
+            {score >= 80 ? 'Healthy' : score >= 50 ? 'Needs work' : 'Critical'}
+          </p>
+        </div>
       </div>
+      {deductions > 0 && (
+        <div style={{ borderTop: `1px solid ${c.borderSoft}`, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <span style={{ fontFamily: mono, fontSize: 9, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.scoreBreakdown}</span>
+          {highBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 10, color: c.red }}>−{highBugs.length * 25} · {highBugs.length} high {highBugs.length === 1 ? 'bug' : 'bugs'} (×25)</span>}
+          {medBugs.length > 0  && <span style={{ fontFamily: mono, fontSize: 10, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
+          <span style={{ fontFamily: mono, fontSize: 10, color }}>= {score}/100</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -443,28 +494,35 @@ function DiffView({ original, fixed, c, screenW, isDark }) {
     return                         { bg: 'transparent',           color: c.text2,  symbol: ' ', numColor: c.text3  };
   };
 
+  // If no changes at all, show a clean message
+  if (added === 0 && removed === 0 && changed === 0) {
+    return (
+      <div style={{ borderRadius: 10, border: `1px solid ${c.borderSoft}`, padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, background: c.bgSurface }}>
+        <span style={{ fontSize: 24, color: c.green }}>✓</span>
+        <span style={{ fontFamily: mono, fontSize: 12, color: c.text2 }}>No changes — code already matches fixed version</span>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: 10, border: `1px solid ${c.borderSoft}`, overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', borderRadius: 10, border: `1px solid ${c.borderSoft}`, overflow: 'hidden' }}>
       {/* Summary bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 14px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 10, flexWrap: 'wrap' }}>
         <span style={{ color: c.text3 }}>diff</span>
         {added   > 0 && <span style={{ color: c.green }}>+{added} added</span>}
         {removed > 0 && <span style={{ color: c.red   }}>−{removed} removed</span>}
         {changed > 0 && <span style={{ color: c.amber }}>~{changed} changed</span>}
-        {added === 0 && removed === 0 && changed === 0 && <span style={{ color: c.text3 }}>no changes</span>}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
-          {/* Mini visual bar showing proportion of changes */}
           {[...Array(Math.min(20, diff.length))].map((_, i) => {
             const row = rows[Math.floor(i * rows.length / 20)];
-            const color = row?.type === 'added' ? c.green : row?.type === 'removed' ? c.red : row?.type === 'changed' ? c.amber : c.border;
-            return <span key={i} style={{ width: 3, height: 10, borderRadius: 1, background: color, display: 'inline-block' }} />;
+            const col = row?.type === 'added' ? c.green : row?.type === 'removed' ? c.red : row?.type === 'changed' ? c.amber : c.border;
+            return <span key={i} style={{ width: 3, height: 10, borderRadius: 1, background: col, display: 'inline-block' }} />;
           })}
         </div>
       </div>
 
       {/* Diff lines */}
       {isMobileView ? (
-        // Mobile: unified single-column
         <div style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: 400, fontFamily: mono, fontSize: 12 }}>
           {rows.map((row, i) => {
             const s = typeStyle(row.type);
@@ -479,18 +537,17 @@ function DiffView({ original, fixed, c, screenW, isDark }) {
           })}
         </div>
       ) : (
-        // Desktop: side-by-side
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', maxHeight: 400, overflow: 'hidden' }}>
           {['orig', 'fixed'].map(side => (
             <div key={side} style={{ borderRight: side === 'orig' ? `1px solid ${c.borderSoft}` : 'none', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <div style={{ padding: '4px 12px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 10, color: side === 'orig' ? c.red : c.green, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 8 }}>{side === 'orig' ? '●' : '●'}</span>
+                <span style={{ fontSize: 8 }}>●</span>
                 {side === 'orig' ? 'original' : 'fixed'}
               </div>
               <div style={{ overflowY: 'scroll', overflowX: 'auto', flex: 1 }}>
                 {rows.map((row, i) => {
                   const content = side === 'orig' ? row.orig : row.fixed;
-                  const lineNum  = side === 'orig' ? row.oNum : row.fNum;
+                  const lineNum = side === 'orig' ? row.oNum : row.fNum;
                   const s = typeStyle(row.type);
                   const isEmpty = content === '' && (
                     (side === 'orig' && row.type === 'added') ||
@@ -632,6 +689,12 @@ function AppInner() {
   const [isWarmingUp, setIsWarmingUp] = useState(false);
   const [originalCode, setOriginalCode] = useState('');
   const [wasLoadedFromFix, setWasLoadedFromFix] = useState(false);
+  const [codeThemeName, setCodeThemeName] = useState('VS Dark');
+  const [streak, setStreak] = useState(0);
+  const [gistUrl, setGistUrl] = useState('');
+  const [showGistInput, setShowGistInput] = useState(false);
+  const [importingGist, setImportingGist] = useState(false);
+  const [fixingAll, setFixingAll] = useState(false);
 
   const c = isDark ? darkTheme : lightTheme;
   const t = i18n[locale];
@@ -640,7 +703,9 @@ function AppInner() {
   const isTablet = screenW >= 768 && screenW < 1024;
   const bugs = normalizeBugs(analysisResult?.bugsFound);
   const tabAccent = { bugs: c.red, fixed: c.green, explain: c.blue, suggest: c.purple };
-  const langForHL = { nodejs: 'javascript', csharp: 'csharp', sql: 'sql', python: 'python', typescript: 'typescript', java: 'java', php: 'php' }[language] || 'javascript';
+  const langForHL = { nodejs: 'javascript', csharp: 'csharp', sql: 'sql', python: 'python', typescript: 'typescript', java: 'java', php: 'php', ruby: 'ruby', go: 'go', rust: 'rust', swift: 'swift' }[language] || 'javascript';
+  const allThemes = isDark ? THEMES.dark : THEMES.light;
+  const activeTheme = allThemes[codeThemeName] || Object.values(allThemes)[0];
 
   // Inject keyframes
   useEffect(() => {
@@ -653,6 +718,20 @@ function AppInner() {
 
   // Responsive
   useEffect(() => { const fn = () => setScreenW(window.innerWidth); window.addEventListener('resize', fn); return () => window.removeEventListener('resize', fn); }, []);
+
+  // Streak — track consecutive days of usage
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const last  = localStorage.getItem('fp_last_day');
+    const saved = parseInt(localStorage.getItem('fp_streak') || '0', 10);
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    let newStreak = 1;
+    if (last === today)      newStreak = saved;
+    else if (last === yesterday) newStreak = saved + 1;
+    setStreak(newStreak);
+    localStorage.setItem('fp_streak', newStreak);
+    localStorage.setItem('fp_last_day', today);
+  }, []);
 
   // Load history + check for shared result in URL hash
   useEffect(() => {
@@ -692,7 +771,17 @@ function AppInner() {
     showToast(t.shareCopied);
   };
 
-  const handleDragOver = e => { e.preventDefault(); setIsDragging(true); };
+  const handleCodeChange = val => {
+    setCodeInput(val);
+    // Auto-detect language when user pastes a large chunk of new code
+    if (val.length > 50 && Math.abs(val.length - codeInput.length) > 40) {
+      const detected = detectLanguage(val);
+      if (detected && detected !== language) {
+        setLanguage(detected);
+        showToast((locale === 'km' ? t.autoDetected : 'Auto-detected') + ': ' + LANGUAGES.find(l => l.value === detected)?.label);
+      }
+    }
+  };
   const handleDragLeave = e => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = e => {
     e.preventDefault(); setIsDragging(false);
@@ -761,6 +850,16 @@ function AppInner() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
+  // Keyboard tab navigation — left/right arrow keys when no input focused
+  useEffect(() => {
+    const fn = e => {
+      if (document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight') { const i = TAB_KEYS.indexOf(activeTab); if (i < TAB_KEYS.length - 1) switchTab(TAB_KEYS[i + 1]); }
+      if (e.key === 'ArrowLeft')  { const i = TAB_KEYS.indexOf(activeTab); if (i > 0) switchTab(TAB_KEYS[i - 1]); }
+    };
+    window.addEventListener('keydown', fn); return () => window.removeEventListener('keydown', fn);
+  }, [activeTab]);
+
   // Progress step cycling
   useEffect(() => {
     if (!isLoading) return;
@@ -787,6 +886,54 @@ function AppInner() {
       }
     } catch { showToast('Fix failed'); }
     finally { setFixingBug(null); }
+  };
+
+  // Fix all bugs at once — loads fixedCode into editor
+  const handleFixAll = () => {
+    if (!analysisResult?.fixedCode) return;
+    setFixingAll(true);
+    setTimeout(() => {
+      setCodeInput(formatCode(analysisResult.fixedCode, language));
+      setWasLoadedFromFix(true);
+      showToast(locale === 'km' ? 'បានជួសជុលទាំងអស់ ✓' : 'All bugs fixed ✓');
+      setFixingAll(false);
+    }, 400);
+  };
+
+  // Auto-detect language from code content
+  const detectLanguage = code => {
+    for (const { lang, patterns } of LANG_HINTS) {
+      if (patterns.some(p => p.test(code))) return lang;
+    }
+    return null;
+  };
+
+  // GitHub Gist import
+  const handleGistImport = async () => {
+    if (!gistUrl.trim()) return;
+    setImportingGist(true);
+    try {
+      const id = gistUrl.trim().split('/').pop().split('#')[0];
+      const res = await fetch(`https://api.github.com/gists/${id}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const files = Object.values(data.files);
+      if (!files.length) throw new Error();
+      const file = files[0];
+      const content = file.content || '';
+      const ext = file.filename?.split('.').pop()?.toLowerCase();
+      if (EXT_MAP[ext]) setLanguage(EXT_MAP[ext]);
+      else {
+        const detected = detectLanguage(content);
+        if (detected) setLanguage(detected);
+      }
+      setCodeInput(content);
+      setGistUrl('');
+      setShowGistInput(false);
+      showToast(locale === 'km' ? 'បាននាំចូល Gist ✓' : 'Gist imported ✓');
+    } catch {
+      showToast(t.gistError);
+    } finally { setImportingGist(false); }
   };
 
   const lineCount = codeInput.split('\n').length;
@@ -816,6 +963,19 @@ function AppInner() {
           </span>}
           <button onClick={() => setLocale(l => l === 'en' ? 'km' : 'en')} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 10px', cursor: 'pointer', fontFamily: locale === 'km' ? mono : khmer, fontSize: 11, color: c.text2, transition: '0.15s', flexShrink: 0 }}
             onMouseEnter={e => e.currentTarget.style.borderColor = c.tealDim} onMouseLeave={e => e.currentTarget.style.borderColor = c.border}>{t.langToggle}</button>
+          {/* Theme picker — only show on desktop */}
+          {!isMobile && Object.keys(allThemes).length > 1 && (
+            <select value={codeThemeName} onChange={e => setCodeThemeName(e.target.value)}
+              style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 10, padding: '5px 6px', cursor: 'pointer', outline: 'none' }}>
+              {Object.keys(allThemes).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+          )}
+          {/* Streak badge */}
+          {streak > 0 && (
+            <span style={{ fontFamily: mono, fontSize: 10, color: c.amber, background: 'rgba(245,158,11,0.1)', border: `1px solid rgba(245,158,11,0.2)`, borderRadius: 20, padding: '4px 8px', flexShrink: 0 }}>
+              🔥 {streak} {t.streakLabel}
+            </span>
+          )}
           <button onClick={() => setIsDark(p => !p)} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 11, color: c.text2, transition: '0.15s', flexShrink: 0 }}
             onMouseEnter={e => e.currentTarget.style.borderColor = c.tealDim} onMouseLeave={e => e.currentTarget.style.borderColor = c.border}>
             <span style={{ fontSize: 13 }}>{isDark ? '☀' : '☾'}</span>
@@ -868,11 +1028,28 @@ function AppInner() {
                   {t.modes[m]}
                 </button>
               ))}
+              <button onClick={() => setShowGistInput(v => !v)}
+                style={{ fontFamily: mono, fontSize: 10, padding: '4px 10px', borderRadius: 20, border: `1px solid ${showGistInput ? c.tealDim : c.border}`, background: showGistInput ? c.tealGlow : 'transparent', color: showGistInput ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 'auto' }}>
+                ↓ {t.gistImport}
+              </button>
             </div>
+            {/* Gist import row */}
+            {showGistInput && (
+              <div style={{ display: 'flex', gap: 6, padding: '6px 12px', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
+                <input value={gistUrl} onChange={e => setGistUrl(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleGistImport()}
+                  placeholder={t.gistPlaceholder}
+                  style={{ flex: 1, background: c.bgBase, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 11, padding: '5px 10px', outline: 'none' }} />
+                <button onClick={handleGistImport} disabled={importingGist}
+                  style={{ fontFamily: mono, fontSize: 10, padding: '5px 12px', borderRadius: 8, border: `1px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: importingGist ? 'wait' : 'pointer' }}>
+                  {importingGist ? t.gistFetching : '→'}
+                </button>
+              </div>
+            )}
             <LineNumberedEditor
               c={c}
               value={codeInput}
-              onChange={setCodeInput}
+              onChange={handleCodeChange}
               isDragging={isDragging}
               highlightLine={highlightLine}
               placeholder={locale === 'km' ? 'បិទភ្ជាប់កូដរបស់អ្នក ឬទម្លាក់ឯកសារទីនេះ...' : 'Paste your code here or drag & drop a file...'}
@@ -898,7 +1075,7 @@ function AppInner() {
           </button>
 
           {/* Health score */}
-          {healthScore !== null && <HealthRing score={healthScore} c={c} label={t.codeHealth} isMobile={isMobile} />}
+          {healthScore !== null && <HealthRing score={healthScore} c={c} label={t.codeHealth} isMobile={isMobile} bugs={bugs} t={t} />}
 
           {/* History */}
           {history.length > 0 && (
@@ -978,19 +1155,33 @@ function AppInner() {
                         <span style={{ fontSize: 28 }}>✓</span>
                         <span style={{ fontFamily: tf, fontSize: 12 }}>{t.noBugs}</span>
                       </div>
-                    ) : bugs.map((b, i) => (
+                    ) : (
+                      <>
+                        {/* Fix all button */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <button onClick={handleFixAll} disabled={fixingAll}
+                            style={{ fontFamily: tf, fontSize: 10, padding: '5px 14px', borderRadius: 20, border: `1px solid ${c.green}`, background: 'rgba(74,222,128,0.08)', color: c.green, cursor: fixingAll ? 'wait' : 'pointer', transition: '0.15s' }}>
+                            {fixingAll ? t.fixingAll : t.fixAll}
+                          </button>
+                        </div>
+                        {bugs.map((b, i) => (
                       <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
                         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
                           <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
                           <span style={{ fontFamily: mono, fontSize: 12.5, color: c.text2, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
                           <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                           {b.lineNumber && (
                             <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
                               style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
                               line {b.lineNumber}
                             </button>
+                          )}
+                          {b.confidence != null && (
+                            <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
+                              {b.confidence}% {t.confidenceLabel}
+                            </span>
                           )}
                           <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
                             style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
@@ -1000,7 +1191,9 @@ function AppInner() {
                           </button>
                         </div>
                       </div>
-                    ))}
+                        ))}
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -1050,9 +1243,9 @@ function AppInner() {
                       ? <DiffView original={originalCode} fixed={analysisResult.fixedCode} c={c} screenW={screenW} isDark={isDark} />
                       : fixedView === 'commented'
                         ? analysisResult.commentedCode
-                          ? <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
+                          ? <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
                           : <div style={{ padding: '1.5rem', background: c.bgSurface, borderRadius: 10, fontFamily: tf, fontSize: 12, color: c.text3, textAlign: 'center', lineHeight: 1.8 }}>{t.noCommented}<br /><span style={{ color: c.amber }}>{t.noCommentedHint}</span></div>
-                        : <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>
+                        : <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>
                     }
                   </div>
                 )}
