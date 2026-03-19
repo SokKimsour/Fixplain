@@ -14,8 +14,32 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
 
-// ── Provider clients ──────────────────────────────────────────────────────────
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// ── Groq multi-key round-robin ────────────────────────────────────────────────
+// Add as many GROQ_API_KEY_1, GROQ_API_KEY_2, GROQ_API_KEY_3 ... as you have.
+// Falls back to GROQ_API_KEY if no numbered keys are set.
+const groqKeys = [
+  process.env.GROQ_API_KEY_1,
+  process.env.GROQ_API_KEY_2,
+  process.env.GROQ_API_KEY_3,
+].filter(Boolean);
+
+// If no numbered keys, fall back to the single GROQ_API_KEY
+if (groqKeys.length === 0 && process.env.GROQ_API_KEY) {
+  groqKeys.push(process.env.GROQ_API_KEY);
+}
+
+// Create a Groq client for each key
+const groqClients = groqKeys.map(key => new Groq({ apiKey: key }));
+let groqIndex = 0; // round-robin pointer
+
+function nextGroqClient() {
+  if (!groqClients.length) throw new Error('No Groq API keys configured');
+  const client = groqClients[groqIndex];
+  groqIndex = (groqIndex + 1) % groqClients.length;
+  return client;
+}
+
+// ── Other provider clients ────────────────────────────────────────────────────
 const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 
@@ -86,19 +110,38 @@ function safeParseJSON(text) {
   return JSON.parse(cleaned);
 }
 
-// ── Provider 1: Groq (LLaMA 3.3 70b) ─────────────────────────────────────────
+// ── Provider 1: Groq — round-robin across multiple keys ───────────────────────
 async function callGroq(systemPrompt, userMessage) {
-  const chat = await groq.chat.completions.create({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMessage },
-    ],
-    model: 'llama-3.3-70b-versatile',
-    response_format: { type: 'json_object' },
-    temperature: 0,
-    max_tokens: 4096,
-  });
-  return safeParseJSON(chat.choices[0].message.content);
+  if (!groqClients.length) throw new Error('No Groq API keys configured');
+
+  // Try every key once before giving up — if the current key is rate-limited,
+  // the next key in the rotation might still have quota.
+  const attempts = groqClients.length;
+  let lastError;
+
+  for (let i = 0; i < attempts; i++) {
+    const client = nextGroqClient();
+    try {
+      const chat = await client.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+        model: 'llama-3.3-70b-versatile',
+        response_format: { type: 'json_object' },
+        temperature: 0,
+        max_tokens: 4096,
+      });
+      return safeParseJSON(chat.choices[0].message.content);
+    } catch (err) {
+      lastError = err;
+      // 429 = rate limited — try the next key immediately
+      // Any other error — also try next key (key might be invalid/expired)
+      console.warn(`[Groq] Key ${groqIndex} failed: ${err.message}`);
+    }
+  }
+
+  throw new Error(`All Groq keys failed: ${lastError?.message}`);
 }
 
 // ── Provider 2: Cerebras (LLaMA 3.3 70b — same model, different infra) ───────
@@ -153,9 +196,9 @@ async function callGemini(systemPrompt, userMessage) {
 // Returns { result, provider } so the endpoint knows which one was used.
 async function callWithFallback(systemPrompt, userMessage) {
   const providers = [
-    { name: 'Gemini', fn: () => callGemini(systemPrompt, userMessage) },
     { name: 'Groq', fn: () => callGroq(systemPrompt, userMessage) },
     { name: 'Cerebras', fn: () => callCerebras(systemPrompt, userMessage) },
+    { name: 'Gemini', fn: () => callGemini(systemPrompt, userMessage) },
   ];
 
   const errors = [];
@@ -181,7 +224,8 @@ app.get('/api/ping', (req, res) => res.json({ ok: true }));
 // ── Provider status (useful for debugging on Render logs) ─────────────────────
 app.get('/api/status', (_req, res) => {
   res.json({
-    groq: !!process.env.GROQ_API_KEY,
+    groq: groqClients.length > 0,
+    groqKeys: groqClients.length,
     cerebras: !!CEREBRAS_API_KEY,
     gemini: !!process.env.GEMINI_API_KEY,
   });
@@ -302,5 +346,5 @@ Respond ONLY in strict JSON with one key:
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Fixplain backend live on port ${PORT}`);
-  console.log(`Providers: Groq=${!!process.env.GROQ_API_KEY} | Cerebras=${!!CEREBRAS_API_KEY} | Gemini=${!!process.env.GEMINI_API_KEY}`);
+  console.log(`Providers: Groq=${groqClients.length} keys | Cerebras=${!!CEREBRAS_API_KEY} | Gemini=${!!process.env.GEMINI_API_KEY}`);
 });
