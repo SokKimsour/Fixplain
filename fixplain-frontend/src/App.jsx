@@ -38,6 +38,7 @@ const i18n = {
     severity: { high: 'high', medium: 'medium', low: 'low' },
     modes: { both: 'Fix + Refactor', fix: 'Fix Only', refactor: 'Refactor Only' },
     modesMobile: { both: 'Fix+Ref', fix: 'Fix', refactor: 'Refactor' },
+    warmingUp: '◌  Waking up server…',
     progressSteps: ['Scanning for bugs...', 'Generating fix...', 'Writing explanation...', 'Almost done...'],
     examples: [
       { label: 'Broken JS', lang: 'javascript', code: `function fetchUser(id) {\n  let result = db.query('SELECT * FROM users WHERE id = ' + id)\n  if (result = null) {\n    console.log('not found')\n  }\n  return result\n}` },
@@ -78,6 +79,7 @@ const i18n = {
     severity: { high: 'ខ្ពស់', medium: 'មធ្យម', low: 'ទាប' },
     modes: { both: 'ជួសជុល + តម្រៀប', fix: 'ជួសជុលតែប៉ុណ្ណោះ', refactor: 'តម្រៀបតែប៉ុណ្ណោះ' },
     modesMobile: { both: 'ជួសជុល', fix: 'ជួស', refactor: 'តម្រៀប' },
+    warmingUp: '◌  កំពុងដាក់ server ដំណើរការ…',
     progressSteps: ['កំពុងស្កែនរកបញ្ហា...', 'កំពុងបង្កើតការជួស...', 'កំពុងសរសេរការពន្យល់...', 'ជិតរួចរាល់ហើយ...'],
     examples: [
       { label: 'JS ខូច', lang: 'javascript', code: `function fetchUser(id) {\n  let result = db.query('SELECT * FROM users WHERE id = ' + id)\n  if (result = null) {\n    console.log('not found')\n  }\n  return result\n}` },
@@ -117,32 +119,64 @@ const normalizeBugs = bugs => !bugs?.length ? [] : bugs.map(b => typeof b === 's
 const computeHealthScore = bugs => {
   if (!bugs.length) return 100;
   const realBugs = bugs.filter(b => b.severity === 'high' || b.severity === 'medium');
-  if (!realBugs.length) return 100; // only low/style issues = still full health
+  if (!realBugs.length) return 100;
   const deductions = realBugs.reduce((sum, b) => sum + (b.severity === 'high' ? 25 : 12), 0);
   return Math.max(0, 100 - deductions);
 };
 
 const healthColor = (score, c) => score >= 80 ? c.green : score >= 50 ? c.amber : c.red;
 
+// ── LCS-based diff algorithm ──────────────────────────────────────────────────
+// Produces accurate line-level diffs (added / removed / same) instead of
+// naive index-based zipping. Falls back to zip for very large files.
 function computeDiff(original, fixed) {
-  const oLines = (original || '').split('\n'), fLines = (fixed || '').split('\n');
-  return Array.from({ length: Math.max(oLines.length, fLines.length) }, (_, i) => {
-    const o = oLines[i], f = fLines[i];
-    if (o === undefined) return { orig: '', fixed: f, type: 'added' };
-    if (f === undefined) return { orig: o, fixed: '', type: 'removed' };
-    if (o !== f) return { orig: o, fixed: f, type: 'changed' };
-    return { orig: o, fixed: f, type: 'same' };
-  });
+  const oLines = (original || '').split('\n');
+  const fLines = (fixed || '').split('\n');
+
+  // Performance guard: fall back to naive zip for very large files
+  if (oLines.length > 400 || fLines.length > 400) {
+    return Array.from({ length: Math.max(oLines.length, fLines.length) }, (_, i) => {
+      const o = oLines[i], f = fLines[i];
+      if (o === undefined) return { orig: '', fixed: f, type: 'added' };
+      if (f === undefined) return { orig: o, fixed: '', type: 'removed' };
+      if (o !== f) return { orig: o, fixed: f, type: 'changed' };
+      return { orig: o, fixed: f, type: 'same' };
+    });
+  }
+
+  const m = oLines.length, n = fLines.length;
+  // Build LCS table
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = oLines[i - 1] === fLines[j - 1]
+        ? dp[i - 1][j - 1] + 1
+        : Math.max(dp[i - 1][j], dp[i][j - 1]);
+
+  // Backtrack to build diff
+  const result = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oLines[i - 1] === fLines[j - 1]) {
+      result.unshift({ orig: oLines[i - 1], fixed: fLines[j - 1], type: 'same' });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      result.unshift({ orig: '', fixed: fLines[j - 1], type: 'added' });
+      j--;
+    } else {
+      result.unshift({ orig: oLines[i - 1], fixed: '', type: 'removed' });
+      i--;
+    }
+  }
+  return result;
 }
 
 // ── Client-side code formatter ────────────────────────────────────────────────
 function formatCode(code, language) {
   if (!code || typeof code !== 'string') return code;
-  // If already has newlines, trust it
   if (code.split('\n').length > 3) return code;
 
   try {
-    // JS/TS/Java/C#/PHP: add newlines after { ; }
     if (['javascript', 'nodejs', 'typescript', 'java', 'csharp', 'php'].includes(language)) {
       let result = code
         .replace(/\{(?!\s*\n)/g, '{\n')
@@ -150,7 +184,6 @@ function formatCode(code, language) {
         .replace(/;(?!\s*\n)/g, ';\n')
         .replace(/\n{3,}/g, '\n\n');
 
-      // Re-indent
       let depth = 0;
       return result.split('\n').map(line => {
         const trimmed = line.trim();
@@ -162,7 +195,6 @@ function formatCode(code, language) {
       }).filter((l, i, arr) => !(l === '' && arr[i - 1] === '')).join('\n');
     }
 
-    // SQL: newline before keywords
     if (language === 'sql') {
       return code
         .replace(/\b(SELECT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|ON|GROUP BY|ORDER BY|HAVING|LIMIT|OFFSET|INSERT|UPDATE|DELETE|SET|VALUES)\b/gi, '\n$1')
@@ -170,7 +202,6 @@ function formatCode(code, language) {
         .trim();
     }
 
-    // Python: add newlines after : and before def/class
     if (language === 'python') {
       return code
         .replace(/:(?!\s*\n)(?!:)/g, ':\n')
@@ -257,6 +288,25 @@ const SeverityBadge = ({ severity, isDark, label }) => {
   return <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 600, padding: '2px 7px', borderRadius: 20, background: st.bg, color: st.color, letterSpacing: '0.5px', textTransform: 'uppercase', flexShrink: 0 }}>{label}</span>;
 };
 
+// ── Shared action buttons (defined outside App to avoid remount on each render) ─
+const CopyBtn = ({ c, onClick }) => (
+  <button onClick={onClick}
+    style={{ fontFamily: mono, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
+    copy
+  </button>
+);
+
+const UseCodeBtn = ({ c, onClick }) => (
+  <button onClick={onClick}
+    style={{ fontFamily: mono, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = c.teal; e.currentTarget.style.color = c.teal; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
+    ← use
+  </button>
+);
+
 // ── Onboarding Tour ───────────────────────────────────────────────────────────
 function OnboardingTour({ c, t, onDone }) {
   const [step, setStep] = useState(0);
@@ -274,9 +324,7 @@ function OnboardingTour({ c, t, onDone }) {
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: 'none', background: isMobileView ? 'rgba(0,0,0,0.4)' : 'none' }}>
       <div style={{ position: 'absolute', ...pos, background: c.bgPanel, border: `1px solid ${c.teal}`, borderRadius: 14, padding: '16px 18px', maxWidth: isMobileView ? undefined : 260, pointerEvents: 'all' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontFamily: mono, fontSize: 10, color: c.teal }}>
-            {step + 1}/{steps.length}
-          </span>
+          <span style={{ fontFamily: mono, fontSize: 10, color: c.teal }}>{step + 1}/{steps.length}</span>
           <button onClick={onDone} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontFamily: mono, fontSize: 10 }}>{t.tour.skip}</button>
         </div>
         <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 600, color: c.text1, marginBottom: 6 }}>{steps[step].title}</p>
@@ -334,9 +382,21 @@ function LoadingSkeleton({ c, progressStep }) {
   );
 }
 
-function DiffView({ original, fixed, c }) {
+// ── Diff view ─────────────────────────────────────────────────────────────────
+// Uses LCS-accurate diff. Accepts screenW as a prop so it responds to resize
+// instead of reading window.innerWidth once at render time.
+function DiffView({ original, fixed, c, screenW }) {
   const diff = computeDiff(original, fixed);
-  const isMobileView = window.innerWidth < 768;
+  const isMobileView = screenW < 768;
+
+  // Compute per-side line numbers, skipping blank placeholder rows
+  const origNums = [], fixedNums = [];
+  let oNum = 1, fNum = 1;
+  diff.forEach(row => {
+    origNums.push(row.type !== 'added' ? oNum++ : null);
+    fixedNums.push(row.type !== 'removed' ? fNum++ : null);
+  });
+
   return (
     <div style={{ borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'grid', gridTemplateColumns: isMobileView ? '1fr' : '1fr 1fr', height: 360, overflow: 'hidden' }}>
       {['orig', 'fixed'].map(side => (
@@ -346,12 +406,24 @@ function DiffView({ original, fixed, c }) {
           </div>
           <div style={{ overflowY: 'scroll', overflowX: 'auto', flex: 1, minHeight: 0 }}>
             {diff.map((row, i) => {
-              const bg = row.type === 'same' ? 'transparent' : side === 'orig' ? c.redGlow : 'rgba(74,222,128,0.08)';
-              const col = row.type === 'same' ? c.text2 : side === 'orig' ? c.red : c.green;
+              const lineNum = side === 'orig' ? origNums[i] : fixedNums[i];
+              const content = side === 'orig' ? row.orig : row.fixed;
+              const bg = row.type === 'same'
+                ? 'transparent'
+                : side === 'orig'
+                  ? (row.type === 'removed' || row.type === 'changed' ? c.redGlow : 'transparent')
+                  : (row.type === 'added' || row.type === 'changed' ? 'rgba(74,222,128,0.08)' : 'transparent');
+              const col = row.type === 'same'
+                ? c.text2
+                : side === 'orig'
+                  ? (row.type === 'removed' || row.type === 'changed' ? c.red : c.text3)
+                  : (row.type === 'added' || row.type === 'changed' ? c.green : c.text3);
               return (
                 <div key={i} style={{ display: 'flex', gap: 8, padding: '0 10px', background: bg, minHeight: 22 }}>
-                  <span style={{ fontFamily: mono, fontSize: 11, color: c.text3, minWidth: 22, userSelect: 'none', lineHeight: '22px', flexShrink: 0 }}>{i + 1}</span>
-                  <span style={{ fontFamily: mono, fontSize: 12, color: col, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: '22px', flex: 1 }}>{side === 'orig' ? row.orig : row.fixed}</span>
+                  <span style={{ fontFamily: mono, fontSize: 11, color: c.text3, minWidth: 28, userSelect: 'none', lineHeight: '22px', flexShrink: 0, textAlign: 'right' }}>
+                    {lineNum ?? ''}
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: 12, color: col, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: '22px', flex: 1 }}>{content}</span>
                 </div>
               );
             })}
@@ -362,10 +434,25 @@ function DiffView({ original, fixed, c }) {
   );
 }
 
+// ── Line-numbered editor ──────────────────────────────────────────────────────
 function LineNumberedEditor({ c, value, onChange, isDragging, highlightLine, placeholder }) {
   const taRef = useRef(null), lnRef = useRef(null);
   const lines = value ? value.split('\n') : [''];
-  const sync = () => { if (lnRef.current && taRef.current) lnRef.current.scrollTop = taRef.current.scrollTop; };
+
+  const sync = () => {
+    if (lnRef.current && taRef.current) lnRef.current.scrollTop = taRef.current.scrollTop;
+  };
+
+  // Scroll the editor to the highlighted line when a line badge is clicked
+  useEffect(() => {
+    if (highlightLine && taRef.current) {
+      const lineH = 13 * 1.8; // fontSize 13px * lineHeight 1.8 + padding
+      const targetScrollTop = (highlightLine - 1) * lineH - taRef.current.clientHeight / 3;
+      taRef.current.scrollTop = Math.max(0, targetScrollTop);
+      if (lnRef.current) lnRef.current.scrollTop = taRef.current.scrollTop;
+    }
+  }, [highlightLine]);
+
   return (
     <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0, position: 'relative' }}>
       {isDragging && (
@@ -374,7 +461,6 @@ function LineNumberedEditor({ c, value, onChange, isDragging, highlightLine, pla
           <span style={{ fontFamily: mono, fontSize: 13, color: c.teal }}>drop file here</span>
         </div>
       )}
-      {/* Only show line numbers when there's real content */}
       {value.trim() && (
         <div ref={lnRef} style={{ background: c.lineNumBg, borderRight: `1px solid ${c.borderSoft}`, padding: '1rem 8px 1rem 12px', textAlign: 'right', fontFamily: mono, fontSize: 12, lineHeight: 1.8, userSelect: 'none', overflowY: 'hidden', minWidth: 44, flexShrink: 0 }}>
           {lines.map((_, i) => (
@@ -432,7 +518,7 @@ export default function App() {
   const [highlightLine, setHighlightLine] = useState(null);
   const [fixingBug, setFixingBug] = useState(null);
   const [showTour, setShowTour] = useState(false);
-  const [originalCode, setOriginalCode] = useState('');
+  const [isWarmingUp, setIsWarmingUp] = useState(false);
 
   const c = isDark ? darkTheme : lightTheme;
   const t = i18n[locale];
@@ -464,39 +550,17 @@ export default function App() {
       const decoded = decodeShare(hash);
       if (decoded) { setAnalysisResult(decoded.result); setLanguage(decoded.language); setMode(decoded.mode); switchTab('bugs'); }
     }
-    // Show onboarding tour for first-time visitors
     if (!localStorage.getItem('fp_tour_done')) setShowTour(true);
   }, []);
 
-  // Keyboard shortcut
-  useEffect(() => {
-    const fn = e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); if (!isLoading && codeInput.trim() && cooldown === 0) handleAnalyze(); } };
-    window.addEventListener('keydown', fn); return () => window.removeEventListener('keydown', fn);
-  }, [isLoading, codeInput, cooldown]);
-
-  // Cooldown timer
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setTimeout(() => setCooldown(c => c - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldown]);
-
-  // Progress step cycling
-  useEffect(() => {
-    if (!isLoading) return;
-    setProgressStep(0);
-    const steps = t.progressSteps;
-    let idx = 0;
-    const interval = setInterval(() => { idx = (idx + 1) % (steps.length); setProgressStep(idx); }, 2200);
-    return () => clearInterval(interval);
-  }, [isLoading]);
-
   const showToast = msg => { setToastMsg(msg); setToastVisible(true); setTimeout(() => setToastVisible(false), 2200); };
+
   const handleCopy = (text, lang) => {
     const formatted = formatCode(text, lang || language);
     navigator.clipboard.writeText(formatted);
     showToast(t.copied);
   };
+
   const clearHistory = () => { setHistory([]); localStorage.removeItem('fixplain_history'); };
 
   const handleShare = () => {
@@ -517,28 +581,46 @@ export default function App() {
     if (EXT_MAP[ext]) setLanguage(EXT_MAP[ext]);
     const reader = new FileReader();
     reader.onload = ev => {
-      const content = ev.target.result;
-      setCodeInput(formatCode(content, EXT_MAP[ext] || language));
+      setCodeInput(ev.target.result);
     };
     reader.readAsText(file);
   };
 
   const switchTab = key => { setActiveTab(key); setTabKey(k => k + 1); setShowDiff(false); };
-
   const loadExample = ex => { setCodeInput(ex.code); setLanguage(ex.lang); setAnalysisResult(null); setError(null); };
 
+  // handleAnalyze must be defined BEFORE the keyboard shortcut useEffect that
+  // references it in its dependency array — otherwise a ReferenceError is thrown.
   const handleAnalyze = useCallback(async () => {
-    setIsLoading(true); setError(null); setAnalysisResult(null);
+    setIsLoading(true); setIsWarmingUp(false); setError(null); setAnalysisResult(null);
     setHighlightLine(null); setOriginalCode(codeInput); switchTab('bugs');
+
+    const API = 'https://ffxplain-api.onrender.com';
+
     try {
-      const res = await fetch('https://ffxplain-api.onrender.com/api/fix', {
+      // ── Step 1: ping the server so Render wakes up if it was sleeping.
+      // If the ping takes longer than 2 s we show a "waking up" message so the
+      // user knows to wait instead of seeing a confusing failure.
+      const pingTimeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('slow')), 2000)
+      );
+      try {
+        await Promise.race([fetch(`${API}/api/ping`), pingTimeout]);
+      } catch {
+        // Server is cold-starting — show the warming-up indicator and wait
+        setIsWarmingUp(true);
+        await fetch(`${API}/api/ping`); // wait as long as it takes (Render ~30-60s)
+        setIsWarmingUp(false);
+      }
+
+      // ── Step 2: now the server is awake — run the real analysis
+      const res = await fetch(`${API}/api/fix`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           codeInput,
           language,
           mode,
           locale,
-          // Send previous bugs so AI knows what was already fixed
           previousBugs: analysisResult ? normalizeBugs(analysisResult.bugsFound).map(b => b.issue) : [],
         }),
       });
@@ -550,9 +632,36 @@ export default function App() {
       const updated = [entry, ...history].slice(0, 5);
       setHistory(updated); localStorage.setItem('fixplain_history', JSON.stringify(updated));
       setCooldown(3);
-    } catch { setError(t.errorMsg); }
-    finally { setIsLoading(false); }
-  }, [codeInput, language, mode, locale, history, t]);
+    } catch {
+      setError(t.errorMsg);
+    } finally {
+      setIsLoading(false);
+      setIsWarmingUp(false);
+    }
+  }, [codeInput, language, mode, locale, history, t, analysisResult]);
+
+  // Keyboard shortcut — handleAnalyze is defined above so no ReferenceError
+  useEffect(() => {
+    const fn = e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); if (!isLoading && codeInput.trim() && cooldown === 0) handleAnalyze(); } };
+    window.addEventListener('keydown', fn); return () => window.removeEventListener('keydown', fn);
+  }, [isLoading, codeInput, cooldown, handleAnalyze]);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
+  // Progress step cycling
+  useEffect(() => {
+    if (!isLoading) return;
+    setProgressStep(0);
+    const steps = t.progressSteps;
+    let idx = 0;
+    const interval = setInterval(() => { idx = (idx + 1) % steps.length; setProgressStep(idx); }, 2200);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   // Apply single bug fix
   const handleFixSingle = async (bug, idx) => {
@@ -577,29 +686,12 @@ export default function App() {
   const charCount = codeInput.length;
   const healthScore = bugs.length > 0 || analysisResult ? computeHealthScore(bugs) : null;
 
-  const CopyBtn = ({ text }) => (
-    <button onClick={() => handleCopy(text, language)}
-      style={{ fontFamily: mono, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
-      copy
-    </button>
-  );
-
-  const UseCodeBtn = ({ text }) => (
-    <button onClick={() => { setCodeInput(formatCode(text, language)); showToast(locale === 'km' ? 'បានដាក់ក្នុង editor' : 'Loaded into editor'); }}
-      style={{ fontFamily: mono, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = c.teal; e.currentTarget.style.color = c.teal; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
-      ← use
-    </button>
-  );
-
   return (
     <div style={{ minHeight: '100vh', background: c.bgBase, color: c.text1, fontFamily: tf, display: 'flex', flexDirection: 'column', transition: 'background 0.2s, color 0.2s', overflowX: 'hidden', width: '100%' }}>
 
       {showTour && <OnboardingTour c={c} t={t} onDone={() => { setShowTour(false); localStorage.setItem('fp_tour_done', '1'); }} />}
       <AnimatedBackground isDark={isDark} />
+
       {/* ── Nav ── */}
       <nav style={{ borderBottom: `1px solid ${c.borderSoft}`, padding: isMobile ? '8px 0.75rem' : '0 1.25rem', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: c.navBg, backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10, gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -630,7 +722,6 @@ export default function App() {
         <h1 style={{ fontSize: isMobile ? 'clamp(20px,6vw,28px)' : 'clamp(26px,4vw,38px)', fontWeight: 600, letterSpacing: locale === 'km' ? 0 : '-1px', lineHeight: 1.3, margin: 0, fontFamily: tf }}>
           {locale === 'km' ? t.tagline : <>Fix it. <span style={{ color: c.teal }}>Explain it.</span> Learn from it.</>}
         </h1>
-        {/* Example buttons */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap', padding: '0 1rem' }}>
           <span style={{ fontFamily: mono, fontSize: 10, color: c.text3 }}>{t.tryExample}:</span>
           {t.examples.map((ex, i) => (
@@ -664,7 +755,7 @@ export default function App() {
             <div style={{ display: 'flex', gap: 6, padding: '8px 12px', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface, flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
               {MODES.map(m => (
                 <button key={m} onClick={() => setMode(m)}
-                  style={{ fontFamily: tf, fontSize: isMobile ? 10 : 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${mode === m ? c.tealDim : c.border}`, background: mode === m ? c.tealGlow : 'transparent', color: mode === m ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}
+                  style={{ fontFamily: tf, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${mode === m ? c.tealDim : c.border}`, background: mode === m ? c.tealGlow : 'transparent', color: mode === m ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}
                   onMouseEnter={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; } }}
                   onMouseLeave={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text3; } }}>
                   {t.modes[m]}
@@ -687,7 +778,11 @@ export default function App() {
 
           <button onClick={handleAnalyze} disabled={isLoading || !codeInput.trim() || cooldown > 0}
             style={{ fontFamily: tf, fontSize: isMobile ? 12 : 13, fontWeight: 600, padding: '12px 0', borderRadius: 30, border: `1.5px solid ${c.tealDim}`, background: isLoading ? 'transparent' : c.tealGlow, color: c.teal, cursor: (isLoading || !codeInput.trim() || cooldown > 0) ? 'not-allowed' : 'pointer', letterSpacing: '0.4px', transition: 'all 0.2s', opacity: (!codeInput.trim() && !isLoading) ? 0.4 : 1, width: '100%' }}>
-            {isLoading ? t.analyzingBtn : cooldown > 0 ? `${t.readyIn} ${cooldown}s` : analysisResult ? t.reanalyzeBtn : t.analyzeBtn}
+            {isLoading
+              ? (isWarmingUp ? t.warmingUp : t.analyzingBtn)
+              : cooldown > 0 ? `${t.readyIn} ${cooldown}s`
+              : analysisResult ? t.reanalyzeBtn
+              : t.analyzeBtn}
           </button>
 
           {/* Health score */}
@@ -746,7 +841,7 @@ export default function App() {
 
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
             {error && <div style={{ margin: '1rem', padding: '12px 16px', background: c.redGlow, border: `1px solid ${c.red}`, borderLeft: `3px solid ${c.red}`, borderRadius: 10, color: c.red, fontFamily: tf, fontSize: 12 }}>{error}</div>}
-            {isLoading && <LoadingSkeleton c={c} progressStep={t.progressSteps[progressStep]} />}
+            {isLoading && <LoadingSkeleton c={c} progressStep={isWarmingUp ? t.warmingUp : t.progressSteps[progressStep]} />}
             {!analysisResult && !isLoading && !error && (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, padding: '3rem' }}>
                 <span style={{ fontSize: 30, opacity: 0.2 }}>◈</span>
@@ -806,12 +901,13 @@ export default function App() {
                         ))}
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <UseCodeBtn text={analysisResult.fixedCode} />
-                        <CopyBtn text={analysisResult.fixedCode} />
+                        <UseCodeBtn c={c} onClick={() => { setCodeInput(formatCode(analysisResult.fixedCode, language)); showToast(locale === 'km' ? 'បានដាក់ក្នុង editor' : 'Loaded into editor'); }} />
+                        <CopyBtn c={c} onClick={() => handleCopy(analysisResult.fixedCode, language)} />
                       </div>
                     </div>
-                    {showDiff ? <DiffView original={originalCode} fixed={analysisResult.fixedCode} c={c} /> :
-                      <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>}
+                    {showDiff
+                      ? <DiffView original={originalCode} fixed={analysisResult.fixedCode} c={c} screenW={screenW} />
+                      : <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>}
                   </div>
                 )}
 
@@ -821,8 +917,8 @@ export default function App() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span style={{ fontFamily: tf, fontSize: 11, color: c.amber }}>{t.commentedLabel}</span>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <UseCodeBtn text={analysisResult.commentedCode || analysisResult.fixedCode} />
-                        <CopyBtn text={analysisResult.commentedCode || analysisResult.fixedCode} />
+                        <UseCodeBtn c={c} onClick={() => { setCodeInput(formatCode(analysisResult.commentedCode || analysisResult.fixedCode, language)); showToast(locale === 'km' ? 'បានដាក់ក្នុង editor' : 'Loaded into editor'); }} />
+                        <CopyBtn c={c} onClick={() => handleCopy(analysisResult.commentedCode || analysisResult.fixedCode, language)} />
                       </div>
                     </div>
                     {analysisResult.commentedCode
@@ -872,6 +968,9 @@ export default function App() {
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 8, fontFamily: mono, fontSize: 10, color: c.text3, padding: `0 ${isMobile ? '0.75rem' : '1.25rem'} 1rem`, flexWrap: 'wrap' }}>
         <span style={{ width: 5, height: 5, borderRadius: '50%', background: c.green, display: 'inline-block' }} />
         {t.connected} · ffxplain-api.onrender.com &nbsp;·&nbsp; {LANGUAGES.find(l => l.value === language)?.label} &nbsp;·&nbsp; {t.modes[mode]}
+        {analysisResult?._provider && (
+          <>&nbsp;·&nbsp; via <span style={{ color: c.teal }}>{analysisResult._provider}</span></>
+        )}
       </div>
 
       <Toast message={toastMsg} visible={toastVisible} c={c} />
