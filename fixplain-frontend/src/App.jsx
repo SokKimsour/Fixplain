@@ -782,6 +782,7 @@ function AppInner() {
       }
     }
   };
+  const handleDragOver  = e => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = e => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = e => {
     e.preventDefault(); setIsDragging(false);
