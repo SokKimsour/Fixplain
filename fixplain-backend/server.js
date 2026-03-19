@@ -2,8 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
+import { GoogleGenAI } from '@google/genai';
 import pkg from 'js-beautify';
 const { js: beautifyJS } = pkg;
+
+import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 const app = express();
@@ -15,10 +18,8 @@ app.use(express.json());
 
 // ── Provider clients ──────────────────────────────────────────────────────────
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-// Cerebras and Gemini use native fetch — no extra SDK needed
+const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ── Rate limiter (10 req / min per IP) ───────────────────────────────────────
 const rateLimitMap = new Map();
@@ -132,34 +133,21 @@ async function callCerebras(systemPrompt, userMessage) {
   return safeParseJSON(data.choices[0].message.content);
 }
 
-// ── Provider 3: Gemini 2.0 Flash ─────────────────────────────────────────────
+// ── Provider 3: Gemini 2.5 Flash (official @google/genai SDK) ────────────────
 async function callGemini(systemPrompt, userMessage) {
-  if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set');
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set');
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-        generationConfig: {
-          temperature: 0,
-          maxOutputTokens: 4096,
-          response_mime_type: 'application/json',
-        },
-      }),
-    }
-  );
+  const response = await genai.models.generateContent({
+    model: 'gemini-2.5-flash-preview-04-17',
+    contents: `${systemPrompt}\n\n${userMessage}`,
+    config: {
+      temperature: 0,
+      maxOutputTokens: 4096,
+      responseMimeType: 'application/json',
+    },
+  });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini ${res.status}: ${err}`);
-  }
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  return safeParseJSON(text);
+  return safeParseJSON(response.text);
 }
 
 // ── Fallback chain: Groq → Cerebras → Gemini ─────────────────────────────────
@@ -197,7 +185,7 @@ app.get('/api/status', (_req, res) => {
   res.json({
     groq: !!process.env.GROQ_API_KEY,
     cerebras: !!CEREBRAS_API_KEY,
-    gemini: !!GEMINI_API_KEY,
+    gemini: !!process.env.GEMINI_API_KEY,
   });
 });
 
@@ -316,5 +304,5 @@ Respond ONLY in strict JSON with one key:
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Fixplain backend live on port ${PORT}`);
-  console.log(`Providers: Groq=${!!process.env.GROQ_API_KEY} | Cerebras=${!!CEREBRAS_API_KEY} | Gemini=${!!GEMINI_API_KEY}`);
+  console.log(`Providers: Groq=${!!process.env.GROQ_API_KEY} | Cerebras=${!!CEREBRAS_API_KEY} | Gemini=${!!process.env.GEMINI_API_KEY}`);
 });
