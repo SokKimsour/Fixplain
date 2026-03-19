@@ -34,7 +34,7 @@ const i18n = {
         { title: 'Read results', body: 'Switch between tabs — Bugs, Fixed Code, Explanation, Suggestions and more.' },
       ]
     },
-    tabs: { bugs: 'Bugs Found', fixed: 'Fixed Code', commented: 'Commented Code', explain: 'Explanation', suggest: 'Suggestions' },
+    tabs: { bugs: 'Bugs Found', fixed: 'Fixed Code', explain: 'Explanation', suggest: 'Suggestions' },
     severity: { high: 'high', medium: 'medium', low: 'low' },
     modes: { both: 'Fix + Refactor', fix: 'Fix Only', refactor: 'Refactor Only' },
     modesMobile: { both: 'Fix+Ref', fix: 'Fix', refactor: 'Refactor' },
@@ -75,7 +75,7 @@ const i18n = {
         { title: 'អានលទ្ធផល', body: 'ប្តូររវាងផ្ទាំង — Bugs, Fixed Code, Explanation, Suggestions និងច្រើនទៀត។' },
       ]
     },
-    tabs: { bugs: 'បញ្ហាដែលរកឃើញ', fixed: 'កូដដែលជួសជុល', commented: 'កូដមានមតិ', explain: 'ការពន្យល់', suggest: 'ការណែនាំ' },
+    tabs: { bugs: 'បញ្ហាដែលរកឃើញ', fixed: 'កូដដែលជួសជុល', explain: 'ការពន្យល់', suggest: 'ការណែនាំ' },
     severity: { high: 'ខ្ពស់', medium: 'មធ្យម', low: 'ទាប' },
     modes: { both: 'ជួសជុល + តម្រៀប', fix: 'ជួសជុលតែប៉ុណ្ណោះ', refactor: 'តម្រៀបតែប៉ុណ្ណោះ' },
     modesMobile: { both: 'ជួសជុល', fix: 'ជួស', refactor: 'តម្រៀប' },
@@ -101,7 +101,7 @@ const LANGUAGES = [
   { value: 'java', label: 'Java' }, { value: 'php', label: 'PHP' },
 ];
 const MODES = ['both', 'fix', 'refactor'];
-const TAB_KEYS = ['bugs', 'fixed', 'commented', 'explain', 'suggest'];
+const TAB_KEYS = ['bugs', 'fixed', 'explain', 'suggest'];
 const EXT_MAP = { js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', py: 'python', cs: 'csharp', sql: 'sql', java: 'java', php: 'php' };
 const SEVERITY_STYLE = {
   high: { dark: { bg: 'rgba(248,113,113,0.12)', color: '#f87171' }, light: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' } },
@@ -572,7 +572,7 @@ function AppInner() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('bugs');
-  const [showDiff, setShowDiff] = useState(false);
+  const [fixedView, setFixedView] = useState('code'); // 'code' | 'commented' | 'diff'
   const [isDragging, setIsDragging] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
@@ -592,7 +592,7 @@ function AppInner() {
   const isMobile = screenW < 768;
   const isTablet = screenW >= 768 && screenW < 1024;
   const bugs = normalizeBugs(analysisResult?.bugsFound);
-  const tabAccent = { bugs: c.red, fixed: c.green, commented: c.amber, explain: c.blue, suggest: c.purple };
+  const tabAccent = { bugs: c.red, fixed: c.green, explain: c.blue, suggest: c.purple };
   const langForHL = { nodejs: 'javascript', csharp: 'csharp', sql: 'sql', python: 'python', typescript: 'typescript', java: 'java', php: 'php' }[language] || 'javascript';
 
   // Inject keyframes
@@ -659,7 +659,7 @@ function AppInner() {
     reader.readAsText(file);
   };
 
-  const switchTab = key => { setActiveTab(key); setTabKey(k => k + 1); setShowDiff(false); };
+  const switchTab = key => { setActiveTab(key); setTabKey(k => k + 1); setFixedView('code'); };
   const loadExample = ex => { setCodeInput(ex.code); setLanguage(ex.lang); setAnalysisResult(null); setError(null); };
 
   const handleAnalyze = useCallback(async () => {
@@ -957,42 +957,55 @@ function AppInner() {
                   </div>
                 )}
 
-                {/* FIXED CODE */}
+                {/* FIXED CODE — with code / commented / diff toggle */}
                 {activeTab === 'fixed' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                      {/* 3-way toggle: code | commented | diff */}
                       <div style={{ display: 'flex', gap: 4 }}>
-                        {[false, true].map(diff => (
-                          <button key={String(diff)} onClick={() => setShowDiff(diff)}
-                            style={{ fontFamily: mono, fontSize: 10, padding: '4px 10px', borderRadius: 20, border: `1px solid ${showDiff === diff ? c.tealDim : c.border}`, background: showDiff === diff ? c.tealGlow : 'transparent', color: showDiff === diff ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
-                            {diff ? t.diffView : t.codeView}
+                        {[
+                          { key: 'code',      label: t.codeView },
+                          { key: 'commented', label: locale === 'km' ? 'មតិ' : 'commented' },
+                          { key: 'diff',      label: t.diffView },
+                        ].map(({ key, label }) => (
+                          <button key={key} onClick={() => setFixedView(key)}
+                            style={{ fontFamily: mono, fontSize: 10, padding: '4px 10px', borderRadius: 20, border: `1px solid ${fixedView === key ? c.tealDim : c.border}`, background: fixedView === key ? c.tealGlow : 'transparent', color: fixedView === key ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
+                            {label}
                           </button>
                         ))}
                       </div>
+                      {/* Copy / Use buttons — show correct code based on view */}
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <UseCodeBtn c={c} onClick={() => { setCodeInput(formatCode(analysisResult.fixedCode, language)); showToast(locale === 'km' ? 'បានដាក់ក្នុង editor' : 'Loaded into editor'); }} />
-                        <CopyBtn c={c} onClick={() => handleCopy(analysisResult.fixedCode, language)} />
+                        <UseCodeBtn c={c} onClick={() => {
+                          const code = fixedView === 'commented'
+                            ? (analysisResult.commentedCode || analysisResult.fixedCode)
+                            : analysisResult.fixedCode;
+                          setCodeInput(formatCode(code, language));
+                          showToast(locale === 'km' ? 'បានដាក់ក្នុង editor' : 'Loaded into editor');
+                        }} />
+                        <CopyBtn c={c} onClick={() => handleCopy(
+                          fixedView === 'commented'
+                            ? (analysisResult.commentedCode || analysisResult.fixedCode)
+                            : analysisResult.fixedCode,
+                          language
+                        )} />
                       </div>
                     </div>
-                    {showDiff
-                      ? <DiffView original={originalCode} fixed={analysisResult.fixedCode} c={c} screenW={screenW} />
-                      : <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>}
-                  </div>
-                )}
 
-                {/* COMMENTED */}
-                {activeTab === 'commented' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {/* Amber label when viewing commented */}
+                    {fixedView === 'commented' && (
                       <span style={{ fontFamily: tf, fontSize: 11, color: c.amber }}>{t.commentedLabel}</span>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <UseCodeBtn c={c} onClick={() => { setCodeInput(formatCode(analysisResult.commentedCode || analysisResult.fixedCode, language)); showToast(locale === 'km' ? 'បានដាក់ក្នុង editor' : 'Loaded into editor'); }} />
-                        <CopyBtn c={c} onClick={() => handleCopy(analysisResult.commentedCode || analysisResult.fixedCode, language)} />
-                      </div>
-                    </div>
-                    {analysisResult.commentedCode
-                      ? <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
-                      : <div style={{ padding: '1.5rem', background: c.bgSurface, borderRadius: 10, fontFamily: tf, fontSize: 12, color: c.text3, textAlign: 'center', lineHeight: 1.8 }}>{t.noCommented}<br /><span style={{ color: c.amber }}>{t.noCommentedHint}</span></div>}
+                    )}
+
+                    {/* Content */}
+                    {fixedView === 'diff'
+                      ? <DiffView original={originalCode} fixed={analysisResult.fixedCode} c={c} screenW={screenW} />
+                      : fixedView === 'commented'
+                        ? analysisResult.commentedCode
+                          ? <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
+                          : <div style={{ padding: '1.5rem', background: c.bgSurface, borderRadius: 10, fontFamily: tf, fontSize: 12, color: c.text3, textAlign: 'center', lineHeight: 1.8 }}>{t.noCommented}<br /><span style={{ color: c.amber }}>{t.noCommentedHint}</span></div>
+                        : <SyntaxHighlighter language={langForHL} style={c.codeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 12.5, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>
+                    }
                   </div>
                 )}
 
