@@ -1,6 +1,6 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Component } from 'react';
 import jsPDF from 'jspdf';
 import AnimatedBackground from './AnimatedBackground';
 
@@ -215,13 +215,50 @@ function formatCode(code, language) {
   }
 }
 
-function encodeShare(result, language, mode) {
-  try { return btoa(encodeURIComponent(JSON.stringify({ result, language, mode, time: Date.now() }))); }
-  catch { return null; }
+// ── Share URL compression ─────────────────────────────────────────────────────
+// Uses the browser's built-in CompressionStream (gzip) so large analysis
+// results don't produce URLs too long for browsers/messaging apps to handle.
+// Falls back to plain btoa if CompressionStream is unavailable.
+async function encodeShare(result, language, mode, codeInput = '') {
+  try {
+    const json = JSON.stringify({ result, language, mode, codeInput, time: Date.now() });
+    if (typeof CompressionStream !== 'undefined') {
+      const stream = new CompressionStream('gzip');
+      const writer = stream.writable.getWriter();
+      writer.write(new TextEncoder().encode(json));
+      writer.close();
+      const buf = await new Response(stream.readable).arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      // URL-safe base64: replace + / with - _  and strip padding
+      return btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    // Fallback for older browsers
+    return btoa(encodeURIComponent(json)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  } catch { return null; }
 }
-function decodeShare(hash) {
-  try { return JSON.parse(decodeURIComponent(atob(hash))); }
-  catch { return null; }
+
+async function decodeShare(hash) {
+  try {
+    // Restore URL-safe base64 padding
+    const b64 = hash.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = b64 + '=='.slice(0, (4 - b64.length % 4) % 4);
+    const bytes = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+    if (typeof DecompressionStream !== 'undefined') {
+      try {
+        const stream = new DecompressionStream('gzip');
+        const writer = stream.writable.getWriter();
+        writer.write(bytes);
+        writer.close();
+        const text = await new Response(stream.readable).text();
+        return JSON.parse(text);
+      } catch {
+        // Hash might be old uncompressed format — fall through
+      }
+    }
+    // Fallback: try legacy plain btoa format
+    return JSON.parse(decodeURIComponent(atob(padded)));
+  } catch { return null; }
 }
 
 function exportToPDF(analysisResult, language, mode) {
@@ -495,8 +532,36 @@ function Toast({ message, visible, c }) {
   return <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', background: c.bgSurface, border: `1px solid ${c.green}`, color: c.green, fontFamily: mono, fontSize: 12, padding: '8px 18px', borderRadius: 20, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(8px)', transition: 'opacity 0.25s, transform 0.25s', pointerEvents: 'none', zIndex: 200 }}>✓ {message}</div>;
 }
 
+// ── Error Boundary ────────────────────────────────────────────────────────────
+// Catches any runtime crash inside the app and shows a friendly recovery UI
+// instead of a blank white screen. Must be a class component (React requirement).
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { crashed: false, error: null }; }
+  static getDerivedStateFromError(error) { return { crashed: true, error }; }
+  componentDidCatch(error, info) { console.error('Fixplain crashed:', error, info); }
+  render() {
+    if (!this.state.crashed) return this.props.children;
+    const c = this.props.theme || darkTheme;
+    return (
+      <div style={{ minHeight: '100vh', background: c.bgBase, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: '2rem', fontFamily: "'Sora', sans-serif" }}>
+        <span style={{ fontSize: 32 }}>⚠</span>
+        <p style={{ color: c.text1, fontSize: 16, fontWeight: 600, margin: 0 }}>Something went wrong</p>
+        <p style={{ color: c.text3, fontSize: 12, fontFamily: "'JetBrains Mono', monospace", margin: 0, maxWidth: 400, textAlign: 'center', lineHeight: 1.6 }}>{this.state.error?.message || 'An unexpected error occurred.'}</p>
+        <button onClick={() => { this.setState({ crashed: false, error: null }); window.location.hash = ''; }}
+          style={{ marginTop: 8, padding: '10px 24px', borderRadius: 20, border: `1px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
+          ↺ Reload app
+        </button>
+      </div>
+    );
+  }
+}
+
+// ── Char limit ────────────────────────────────────────────────────────────────
+const CHAR_LIMIT = 12000;
+const CHAR_WARN  = 9000;
+
 // ── Main App ──────────────────────────────────────────────────────────────────
-export default function App() {
+function AppInner() {
   const [isDark, setIsDark] = useState(true);
   const [locale, setLocale] = useState('en');
   const [language, setLanguage] = useState('javascript');
@@ -547,8 +612,15 @@ export default function App() {
     if (saved) setHistory(JSON.parse(saved));
     const hash = window.location.hash.slice(1);
     if (hash) {
-      const decoded = decodeShare(hash);
-      if (decoded) { setAnalysisResult(decoded.result); setLanguage(decoded.language); setMode(decoded.mode); switchTab('bugs'); }
+      decodeShare(hash).then(decoded => {
+        if (decoded) {
+          setAnalysisResult(decoded.result);
+          setLanguage(decoded.language);
+          setMode(decoded.mode);
+          if (decoded.codeInput) setCodeInput(decoded.codeInput);
+          switchTab('bugs');
+        }
+      });
     }
     if (!localStorage.getItem('fp_tour_done')) setShowTour(true);
   }, []);
@@ -563,9 +635,9 @@ export default function App() {
 
   const clearHistory = () => { setHistory([]); localStorage.removeItem('fixplain_history'); };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!analysisResult) return;
-    const encoded = encodeShare(analysisResult, language, mode);
+    const encoded = await encodeShare(analysisResult, language, mode, codeInput);
     if (!encoded) return;
     const url = `${window.location.origin}${window.location.pathname}#${encoded}`;
     navigator.clipboard.writeText(url);
@@ -589,33 +661,20 @@ export default function App() {
   const switchTab = key => { setActiveTab(key); setTabKey(k => k + 1); setShowDiff(false); };
   const loadExample = ex => { setCodeInput(ex.code); setLanguage(ex.lang); setAnalysisResult(null); setError(null); };
 
-  // handleAnalyze must be defined BEFORE the keyboard shortcut useEffect that
-  // references it in its dependency array — otherwise a ReferenceError is thrown.
   const handleAnalyze = useCallback(async () => {
     setIsLoading(true); setIsWarmingUp(false); setError(null); setAnalysisResult(null);
     setHighlightLine(null); setOriginalCode(codeInput); switchTab('bugs');
 
     const API = 'https://ffxplain-api.onrender.com';
 
-    try {
-      // ── Step 1: ping the server so Render wakes up if it was sleeping.
-      // If the ping takes longer than 2 s we show a "waking up" message so the
-      // user knows to wait instead of seeing a confusing failure.
-      const pingTimeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('slow')), 2000)
-      );
-      try {
-        await Promise.race([fetch(`${API}/api/ping`), pingTimeout]);
-      } catch {
-        // Server is cold-starting — show the warming-up indicator and wait
-        setIsWarmingUp(true);
-        await fetch(`${API}/api/ping`); // wait as long as it takes (Render ~30-60s)
-        setIsWarmingUp(false);
-      }
+    // Show "waking up server" only if no response after 3s — the analysis
+    // request itself wakes Render, so no pre-ping needed.
+    const warmupTimer = setTimeout(() => setIsWarmingUp(true), 3000);
 
-      // ── Step 2: now the server is awake — run the real analysis
+    try {
       const res = await fetch(`${API}/api/fix`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           codeInput,
           language,
@@ -628,13 +687,14 @@ export default function App() {
       const data = await res.json();
       setAnalysisResult(data);
       if (!normalizeBugs(data.bugsFound).length) switchTab('fixed');
-      const entry = { ...data, _meta: { language, mode, locale, time: Date.now() } };
+      const entry = { ...data, _meta: { language, mode, locale, time: Date.now(), codeInput } };
       const updated = [entry, ...history].slice(0, 5);
       setHistory(updated); localStorage.setItem('fixplain_history', JSON.stringify(updated));
       setCooldown(3);
     } catch {
       setError(t.errorMsg);
     } finally {
+      clearTimeout(warmupTimer);
       setIsLoading(false);
       setIsWarmingUp(false);
     }
@@ -663,7 +723,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  // Apply single bug fix
   const handleFixSingle = async (bug, idx) => {
     setFixingBug(idx);
     try {
@@ -770,9 +829,14 @@ export default function App() {
               highlightLine={highlightLine}
               placeholder={locale === 'km' ? 'បិទភ្ជាប់កូដរបស់អ្នក ឬទម្លាក់ឯកសារទីនេះ...' : 'Paste your code here or drag & drop a file...'}
             />
-            {/* Line/char count */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 12px', background: c.bgSurface, borderTop: `1px solid ${c.borderSoft}` }}>
-              <span style={{ fontFamily: mono, fontSize: 10, color: c.text3 }}>{lineCount} {t.lines} · {charCount} {t.chars}</span>
+            {/* Line/char count + size warning */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 12px', background: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.redGlow : 'rgba(245,158,11,0.08)') : c.bgSurface, borderTop: `1px solid ${charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.borderSoft}`, transition: 'background 0.2s, border-color 0.2s' }}>
+              {charCount >= CHAR_WARN
+                ? <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_LIMIT ? c.red : c.amber }}>
+                    {charCount >= CHAR_LIMIT ? '✗ Exceeds 12,000 char limit' : `⚠ Approaching limit (${CHAR_LIMIT - charCount} left)`}
+                  </span>
+                : <span />}
+              <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.text3 }}>{lineCount} {t.lines} · {charCount} {t.chars}</span>
             </div>
           </Panel>
 
@@ -801,7 +865,11 @@ export default function App() {
                   const bugLabel = typeof firstBug === 'string' ? firstBug : firstBug?.issue;
                   const score = computeHealthScore(normalizeBugs(item.bugsFound));
                   return (
-                    <button key={idx} onClick={() => { setAnalysisResult(item); switchTab('bugs'); }}
+                    <button key={idx} onClick={() => {
+                        setAnalysisResult(item);
+                        if (item._meta?.codeInput) setCodeInput(item._meta.codeInput);
+                        switchTab('bugs');
+                      }}
                       style={{ width: '100%', textAlign: 'left', padding: '9px 12px', background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 12, cursor: 'pointer', transition: '0.15s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
@@ -975,5 +1043,15 @@ export default function App() {
 
       <Toast message={toastMsg} visible={toastVisible} c={c} />
     </div>
+  );
+}
+
+// ── Root export wrapped in ErrorBoundary ──────────────────────────────────────
+export default function App() {
+  const [isDark] = useState(true);
+  return (
+    <ErrorBoundary theme={isDark ? darkTheme : lightTheme}>
+      <AppInner />
+    </ErrorBoundary>
   );
 }

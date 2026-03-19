@@ -18,7 +18,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // Cerebras and Gemini use native fetch — no extra SDK needed
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
-const GEMINI_API_KEY   = process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ── Rate limiter (10 req / min per IP) ───────────────────────────────────────
 const rateLimitMap = new Map();
@@ -92,7 +92,7 @@ async function callGroq(systemPrompt, userMessage) {
   const chat = await groq.chat.completions.create({
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user',   content: userMessage  },
+      { role: 'user', content: userMessage },
     ],
     model: 'llama-3.3-70b-versatile',
     response_format: { type: 'json_object' },
@@ -116,7 +116,7 @@ async function callCerebras(systemPrompt, userMessage) {
       model: 'llama-3.3-70b',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user',   content: userMessage  },
+        { role: 'user', content: userMessage },
       ],
       response_format: { type: 'json_object' },
       temperature: 0,
@@ -137,7 +137,7 @@ async function callGemini(systemPrompt, userMessage) {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set');
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -167,9 +167,9 @@ async function callGemini(systemPrompt, userMessage) {
 // Returns { result, provider } so the endpoint knows which one was used.
 async function callWithFallback(systemPrompt, userMessage) {
   const providers = [
-    { name: 'Groq',     fn: () => callGroq(systemPrompt, userMessage)    },
+    { name: 'Gemini', fn: () => callGemini(systemPrompt, userMessage) },
+    { name: 'Groq', fn: () => callGroq(systemPrompt, userMessage) },
     { name: 'Cerebras', fn: () => callCerebras(systemPrompt, userMessage) },
-    { name: 'Gemini',   fn: () => callGemini(systemPrompt, userMessage)   },
   ];
 
   const errors = [];
@@ -195,9 +195,9 @@ app.get('/api/ping', (req, res) => res.json({ ok: true }));
 // ── Provider status (useful for debugging on Render logs) ─────────────────────
 app.get('/api/status', (_req, res) => {
   res.json({
-    groq:     !!process.env.GROQ_API_KEY,
+    groq: !!process.env.GROQ_API_KEY,
     cerebras: !!CEREBRAS_API_KEY,
-    gemini:   !!GEMINI_API_KEY,
+    gemini: !!GEMINI_API_KEY,
   });
 });
 
@@ -222,8 +222,8 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
     mode === 'fix'
       ? 'Focus ONLY on finding and fixing bugs. Do not refactor beyond what is needed.'
       : mode === 'refactor'
-      ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
-      : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
+        ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
+        : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
 
   const localeInstruction = locale === 'km'
     ? `IMPORTANT: Write the "explanation" and "improvementSuggestions" fields in Khmer (ភាសាខ្មែរ).`
@@ -269,7 +269,7 @@ Respond ONLY in strict JSON with exactly these five keys:
       `Analyze this ${language} code:\n${codeInput}`
     );
 
-    if (result.fixedCode)     result.fixedCode     = formatCode(result.fixedCode,     language);
+    if (result.fixedCode) result.fixedCode = formatCode(result.fixedCode, language);
     if (result.commentedCode) result.commentedCode = formatCode(result.commentedCode, language);
 
     // Tell the frontend which provider answered — shown in the status bar
