@@ -15,22 +15,20 @@ app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
 
 // ── Groq multi-key round-robin ────────────────────────────────────────────────
-// Add as many GROQ_API_KEY_1, GROQ_API_KEY_2, GROQ_API_KEY_3 ... as you have.
-// Falls back to GROQ_API_KEY if no numbered keys are set.
+// Supports GROQ_API_KEY (single) or GROQ_API_KEY_1 ... GROQ_API_KEY_5 (multi).
+// Collects ALL valid keys first, then creates one Groq client per key.
 const groqKeys = [
+  process.env.GROQ_API_KEY,
   process.env.GROQ_API_KEY_1,
   process.env.GROQ_API_KEY_2,
   process.env.GROQ_API_KEY_3,
-].filter(Boolean);
+  process.env.GROQ_API_KEY_4,
+  process.env.GROQ_API_KEY_5,
+].filter(Boolean); // removes undefined / empty strings
 
-// If no numbered keys, fall back to the single GROQ_API_KEY
-if (groqKeys.length === 0 && process.env.GROQ_API_KEY) {
-  groqKeys.push(process.env.GROQ_API_KEY);
-}
-
-// Create a Groq client for each key
+// Create clients only after all keys are collected
 const groqClients = groqKeys.map(key => new Groq({ apiKey: key }));
-let groqIndex = 0; // round-robin pointer
+let groqIndex = 0;
 
 function nextGroqClient() {
   if (!groqClients.length) throw new Error('No Groq API keys configured');
@@ -122,16 +120,20 @@ async function callGroq(systemPrompt, userMessage) {
   for (let i = 0; i < attempts; i++) {
     const client = nextGroqClient();
     try {
-      const chat = await client.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        model: 'llama-3.3-70b-versatile',
-        response_format: { type: 'json_object' },
-        temperature: 0,
-        max_tokens: 4096,
-      });
+      const chat = await withTimeout(
+        client.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
+          ],
+          model: 'llama-3.3-70b-versatile',
+          response_format: { type: 'json_object' },
+          temperature: 0,
+          max_tokens: 4096,
+        }),
+        PROVIDER_TIMEOUT_MS,
+        `Groq key ${i + 1}`
+      );
       return safeParseJSON(chat.choices[0].message.content);
     } catch (err) {
       lastError = err;
@@ -192,13 +194,23 @@ async function callGemini(systemPrompt, userMessage) {
 }
 
 // ── Fallback chain: Groq → Cerebras → Gemini ─────────────────────────────────
-// Tries each provider in order. On failure, logs the error and moves to next.
-// Returns { result, provider } so the endpoint knows which one was used.
+// Each provider gets 20s before we give up and try the next one.
+const PROVIDER_TIMEOUT_MS = 20000;
+
+function withTimeout(promise, ms, name) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${name} timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}
+
 async function callWithFallback(systemPrompt, userMessage) {
   const providers = [
-    { name: 'Groq', fn: () => callGroq(systemPrompt, userMessage) },
-    { name: 'Cerebras', fn: () => callCerebras(systemPrompt, userMessage) },
-    { name: 'Gemini', fn: () => callGemini(systemPrompt, userMessage) },
+    { name: 'Groq', fn: () => withTimeout(callGroq(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Groq') },
+    { name: 'Cerebras', fn: () => withTimeout(callCerebras(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Cerebras') },
+    { name: 'Gemini', fn: () => withTimeout(callGemini(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Gemini') },
   ];
 
   const errors = [];
