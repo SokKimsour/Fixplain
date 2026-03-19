@@ -584,6 +584,7 @@ function AppInner() {
   const [fixingBug, setFixingBug] = useState(null);
   const [showTour, setShowTour] = useState(false);
   const [isWarmingUp, setIsWarmingUp] = useState(false);
+  const [originalCode, setOriginalCode] = useState('');
 
   const c = isDark ? darkTheme : lightTheme;
   const t = i18n[locale];
