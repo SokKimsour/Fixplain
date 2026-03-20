@@ -352,13 +352,20 @@ SEVERITY DEFINITIONS — use these exact criteria, no exceptions:
   CONSISTENCY CHECK: before assigning severity, ask yourself "will this crash at runtime?" → high. "Will this give wrong output silently?" → medium. "Does it still work correctly?" → low.
 
 Respond ONLY in strict JSON with exactly these five keys:
-- "bugsFound": array of objects each with "issue" (${locale === 'km' ? 'string in Khmer (ភាសាខ្មែរ)' : 'string'}), "severity" ("high"|"medium"|"low"), "lineNumber" (integer or null), "confidence" (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
+- "bugsFound": array of objects each with:
+    - "issue": (${locale === 'km' ? 'string in Khmer (ភាសាខ្មែរ)' : 'string'})
+    - "severity": ("high"|"medium"|"low")
+    - "lineNumber": (integer or null)
+    - "confidence": (integer 0-100 — only report bugs with confidence ≥ 70)
+    - "docQuery": a short English search query (3-6 words) for MDN or official docs about this bug type. Always English. Example: "async await javascript", "sql injection prevention", "null reference error". EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
 - "explanation": plain-language explanation referencing specific line numbers for each change. If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
 - "improvementSuggestions": array of exactly 3 objects, each with:
     - "tip": the actionable suggestion text. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
-    - "youtubeQuery": a short English search query (4-7 words) a developer would type on YouTube to learn about this topic. Always in English regardless of locale. Example: "sql injection prevention tutorial", "javascript async await explained", "python error handling best practices".`;
+    - "youtubeQuery": a short English search query (4-7 words) for YouTube. Always English. Example: "sql injection prevention tutorial", "javascript async await explained".
+    - "mdnQuery": a short English search query (3-6 words) for MDN Web Docs or official language documentation. Always English. Example: "Promise async await", "array methods javascript", "python list comprehension".
+    - "soQuery": a short English search query (3-6 words) for Stack Overflow. Always English. Example: "sql injection parameterized query", "fix missing await async javascript".`;
 
   try {
     // Check cache first — skip if wasAlreadyFixed (re-analysis context matters)

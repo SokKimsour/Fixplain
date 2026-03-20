@@ -156,8 +156,8 @@ const lightTheme = {
   bgBase: '#eef1f7',
   bgPanel: '#ffffff',
   bgSurface: '#f4f6fb',
-  border: '#c2c8d8',
-  borderSoft: '#dde1ec',
+  border: '#6b7280',
+  borderSoft: '#9ca3af',
   teal: '#0e7490',
   tealDim: '#0c6a82',
   tealGlow: 'rgba(14,116,144,0.10)',
@@ -487,7 +487,10 @@ function exportToPDF(analysisResult, language, mode, locale = 'en') {
   if (analysisResult.commentedCode) { addSection('Commented Code'); addCode(analysisResult.commentedCode); }
   addSection('Explanation'); addText(analysisResult.explanation, 10);
   addSection('Improvement Suggestions');
-  (analysisResult.improvementSuggestions || []).forEach((s, i) => addText(`${i + 1}. ${s}`, 10));
+  (analysisResult.improvementSuggestions || []).forEach((s, i) => {
+    const tip = typeof s === 'string' ? s : s?.tip;
+    addText(`${i + 1}. ${tip}`, 10);
+  });
 
   const pc = doc.internal.getNumberOfPages();
   for (let p = 1; p <= pc; p++) { doc.setPage(p); doc.setFontSize(8); doc.setTextColor(150, 150, 150); doc.text(`Fixplain · Page ${p} of ${pc}`, W / 2, 292, { align: 'center' }); }
@@ -1508,34 +1511,59 @@ function AppInner() {
                             {fixingAll ? t.fixingAll : t.fixAll}
                           </button>
                         </div>
-                        {bugs.map((b, i) => (
-                          <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
-                            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
-                              <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
-                              <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
-                              <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                              {b.lineNumber && (
-                                <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
-                                  style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
-                                  {t.lineLabel} {b.lineNumber}
+                        {bugs.map((b, i) => {
+                          const mdnUrl = b.docQuery ? `https://developer.mozilla.org/search?q=${encodeURIComponent(b.docQuery)}` : null;
+                          const soUrl = b.docQuery ? `https://stackoverflow.com/search?q=${encodeURIComponent(b.docQuery)}` : null;
+                          return (
+                            <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
+                              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
+                                <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
+                                <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
+                                <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                {b.lineNumber && (
+                                  <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
+                                    style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
+                                    {t.lineLabel} {b.lineNumber}
+                                  </button>
+                                )}
+                                {b.confidence != null && (
+                                  <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
+                                    {b.confidence}% {t.confidenceLabel}
+                                  </span>
+                                )}
+                                <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
+                                  style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
+                                  onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
+                                  onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
+                                  {fixingBug === i ? t.applying : t.applyFix}
                                 </button>
+                              </div>
+                              {/* Doc reference links */}
+                              {(mdnUrl || soUrl) && (
+                                <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                                  {mdnUrl && (
+                                    <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', transition: '0.15s' }}
+                                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
+                                      onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
+                                      📄 MDN Docs
+                                    </a>
+                                  )}
+                                  {soUrl && (
+                                    <a href={soUrl} target="_blank" rel="noopener noreferrer"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.amber, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(245,158,11,0.3)' : 'rgba(180,83,9,0.25)'}`, background: isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)', transition: '0.15s' }}
+                                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.15)' : 'rgba(180,83,9,0.12)'}
+                                      onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)'}>
+                                      💬 Stack Overflow
+                                    </a>
+                                  )}
+                                </div>
                               )}
-                              {b.confidence != null && (
-                                <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
-                                  {b.confidence}% {t.confidenceLabel}
-                                </span>
-                              )}
-                              <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
-                                style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
-                                onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
-                                {fixingBug === i ? t.applying : t.applyFix}
-                              </button>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </>
                     )}
                   </div>
@@ -1606,12 +1634,53 @@ function AppInner() {
                         <span>{locale === 'km' ? 'ការណែនាំនេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ' : 'These suggestions are in Khmer — click ↺ Re-analyze to get them in English'}</span>
                       </div>
                     )}
-                    {analysisResult.improvementSuggestions?.map((s, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                        <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 }}>{i + 1}</span>
-                        <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{s}</span>
-                      </div>
-                    ))}
+                    {analysisResult.improvementSuggestions?.map((s, i) => {
+                      // Handle both old format (string) and new format ({tip, youtubeQuery})
+                      const tip = typeof s === 'string' ? s : s?.tip;
+                      const query = typeof s === 'object' ? s?.youtubeQuery : null;
+                      const mdnQ = typeof s === 'object' ? s?.mdnQuery : null;
+                      const soQ = typeof s === 'object' ? s?.soQuery : null;
+                      const ytUrl = query ? `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}` : null;
+                      const mdnUrl = mdnQ ? `https://developer.mozilla.org/search?q=${encodeURIComponent(mdnQ)}` : null;
+                      const soUrl = soQ ? `https://stackoverflow.com/search?q=${encodeURIComponent(soQ)}` : null;
+                      return (
+                        <div key={i} style={{ padding: '12px 14px', background: c.bgSurface, borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                            <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                            <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{tip}</span>
+                          </div>
+                          {(ytUrl || mdnUrl || soUrl) && (
+                            <div style={{ display: 'flex', gap: 6, marginLeft: 36, flexWrap: 'wrap' }}>
+                              {ytUrl && (
+                                <a href={ytUrl} target="_blank" rel="noopener noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.red, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(248,113,113,0.3)' : 'rgba(220,38,38,0.25)'}`, background: isDark ? 'rgba(248,113,113,0.08)' : 'rgba(220,38,38,0.06)', transition: '0.15s' }}
+                                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(248,113,113,0.15)' : 'rgba(220,38,38,0.12)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(248,113,113,0.08)' : 'rgba(220,38,38,0.06)'}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill={c.red}><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
+                                  {locale === 'km' ? 'YouTube' : 'YouTube'}
+                                </a>
+                              )}
+                              {mdnUrl && (
+                                <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', transition: '0.15s' }}
+                                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
+                                  📄 MDN
+                                </a>
+                              )}
+                              {soUrl && (
+                                <a href={soUrl} target="_blank" rel="noopener noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.amber, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(245,158,11,0.3)' : 'rgba(180,83,9,0.25)'}`, background: isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)', transition: '0.15s' }}
+                                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.15)' : 'rgba(180,83,9,0.12)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)'}>
+                                  💬 Stack Overflow
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
