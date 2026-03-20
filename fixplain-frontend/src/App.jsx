@@ -35,12 +35,33 @@ const i18n = {
     healthy: 'Healthy', needsWork: 'Needs work', critical: 'Critical',
     diffOriginal: 'original', diffFixed: 'fixed',
     tour: {
-      skip: 'Skip tour', next: 'Next', done: 'Done ✓',
+      skip: 'Skip tour', next: 'Next →', back: '← Back', done: 'Start using Fixplain ✓',
       steps: [
-        { title: 'Paste your code', body: 'Drop any code into the editor on the left. You can also drag & drop a file.' },
-        { title: 'Pick a mode', body: 'Choose Fix Only, Refactor Only, or both — depending on what you need.' },
-        { title: 'Analyze', body: 'Click the button or press ⌘Enter to run the AI analysis instantly.' },
-        { title: 'Read results', body: 'Switch between tabs — Bugs, Fixed Code, Explanation, Suggestions and more.' },
+        {
+          icon: '✎',
+          title: 'Paste your code',
+          body: 'Drop any code into the editor. Supports 12 languages — JavaScript, Python, SQL, TypeScript and more. You can also drag & drop a file directly.',
+        },
+        {
+          icon: '⚙',
+          title: 'Choose a mode',
+          body: 'Fix + Refactor fixes bugs AND cleans up your code. Fix Only is for bugs only. Refactor Only tidies code you know is correct.',
+        },
+        {
+          icon: '⚡',
+          title: 'Run the analysis',
+          body: 'Click Analyze or press ⌘Enter. The AI scans for bugs, assigns severity levels, and generates a fix — usually in 5–10 seconds.',
+        },
+        {
+          icon: '◈',
+          title: 'Read your results',
+          body: 'Five tabs: Bugs Found shows issues with severity. Fixed Code has the corrected version. Commented Code adds JSDoc. Explanation and Suggestions help you learn.',
+        },
+        {
+          icon: '↑',
+          title: 'Share & export',
+          body: 'Use ↺ Apply fix to patch one bug at a time, or ⚡ Fix all for everything at once. Export a PDF report or share results via a link.',
+        },
       ]
     },
     tabs: { bugs: 'Bugs Found', fixed: 'Fixed Code', commented: 'Commented Code', explain: 'Explanation', suggest: 'Suggestions' },
@@ -85,12 +106,33 @@ const i18n = {
     healthy: 'សុខភាពល្អ', needsWork: 'ត្រូវកែ', critical: 'គ្រោះថ្នាក់',
     diffOriginal: 'ដើម', diffFixed: 'ជួសជុល',
     tour: {
-      skip: 'រំលង', next: 'បន្ទាប់', done: 'រួចរាល់ ✓',
+      skip: 'រំលង', next: 'បន្ទាប់ →', back: '← ថយក្រោយ', done: 'ចាប់ផ្តើមប្រើ Fixplain ✓',
       steps: [
-        { title: 'បិទភ្ជាប់កូដ', body: 'ដាក់កូដរបស់អ្នកក្នុងប្រអប់ខាងឆ្វេង។ អ្នកអាចទម្លាក់ឯកសារផ្ទាល់ផងដែរ។' },
-        { title: 'ជ្រើសរើសរបៀប', body: 'ជ្រើស Fix Only, Refactor Only ឬទាំងពីរ — អាស្រ័យលើអ្វីដែលអ្នកត្រូវការ។' },
-        { title: 'វិភាគ', body: 'ចុចប៊ូតុង ឬចុច ⌘Enter ដើម្បីដំណើរការ AI ភ្លាមៗ។' },
-        { title: 'អានលទ្ធផល', body: 'ប្តូររវាងផ្ទាំង — Bugs, Fixed Code, Explanation, Suggestions និងច្រើនទៀត។' },
+        {
+          icon: '✎',
+          title: 'បិទភ្ជាប់កូដ',
+          body: 'ដាក់កូដរបស់អ្នកក្នុងប្រអប់ខាងឆ្វេង។ គាំទ្រ 12 ភាសា — JavaScript, Python, SQL, TypeScript និងច្រើនទៀត។ អ្នកក៏អាចទម្លាក់ឯកសារផ្ទាល់ផងដែរ។',
+        },
+        {
+          icon: '⚙',
+          title: 'ជ្រើសរើសរបៀប',
+          body: 'ជួសជុល + តម្រៀប ជួសជុលបញ្ហា ហើយធ្វើឱ្យកូដស្អាត។ ជួសជុលតែ សម្រាប់បញ្ហាប៉ុណ្ណោះ។ តម្រៀបតែ ធ្វើឱ្យស្អាតដោយមិនប៉ះពាល់តក្កវិជ្ជា។',
+        },
+        {
+          icon: '⚡',
+          title: 'ដំណើរការការវិភាគ',
+          body: 'ចុចប៊ូតុង ឬចុច ⌘Enter។ AI ស្កែនរកបញ្ហា កំណត់កម្រិតធ្ងន់ធ្ងរ និងបង្កើតការជួសជុល — ជាធម្មតា 5–10 វិនាទី។',
+        },
+        {
+          icon: '◈',
+          title: 'អានលទ្ធផល',
+          body: 'ប្រាំផ្ទាំង៖ បញ្ហាដែលរកឃើញ បង្ហាញបញ្ហា។ កូដដែលជួសជុល មានកូដដែលបានកែ។ កូដមានមតិ បន្ថែម JSDoc។ ការពន្យល់ និង ការណែនាំ ជួយអ្នករៀន។',
+        },
+        {
+          icon: '↑',
+          title: 'ចែករំលែក និងនាំចេញ',
+          body: 'ប្រើ ↺ ជួសជុល ដើម្បីជួសជុលបញ្ហាមួយ ឬ ⚡ ជួសជុលទាំងអស់។ នាំចេញ PDF ឬចែករំលែកលទ្ធផលតាមតំណ។',
+        },
       ]
     },
     tabs: { bugs: 'បញ្ហាដែលរកឃើញ', fixed: 'កូដដែលជួសជុល', commented: 'កូដមានមតិ', explain: 'ការពន្យល់', suggest: 'ការណែនាំ' },
@@ -464,34 +506,158 @@ const UseCodeBtn = ({ c, onClick }) => (
   </button>
 );
 
-// ── Onboarding Tour ───────────────────────────────────────────────────────────
+// ── Onboarding Tour — spotlight style ────────────────────────────────────────
 function OnboardingTour({ c, t, onDone }) {
   const [step, setStep] = useState(0);
+  const [spotRect, setSpotRect] = useState(null);
   const steps = t.tour.steps;
-  const isLast = step === steps.length - 1;
-  const isMobileView = window.innerWidth < 768;
-  const desktopPos = [
-    { top: '30%', left: '28%' }, { top: '38%', left: '28%' },
-    { top: '72%', left: '28%' }, { top: '30%', right: '3%' },
-  ];
-  const pos = isMobileView
-    ? { bottom: '6rem', left: '50%', transform: 'translateX(-50%)', width: 'calc(100vw - 2rem)' }
-    : desktopPos[step];
+  const isLast  = step === steps.length - 1;
+  const isFirst = step === 0;
+
+  // Selector for each step's target element
+  const selectors = ['[data-tour="editor"]', '[data-tour="modes"]', '[data-tour="analyze"]', '[data-tour="results"]', '[data-tour="actions"]'];
+
+  // Measure the target element whenever step changes
+  useEffect(() => {
+    const measure = () => {
+      const el = document.querySelector(selectors[step]);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setSpotRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+      } else {
+        setSpotRect(null);
+      }
+    };
+    measure();
+    // Re-measure on resize
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [step]);
+
+  const PAD = 10; // spotlight padding around element
+  const sp = spotRect ? {
+    top:    spotRect.top    - PAD,
+    left:   spotRect.left   - PAD,
+    width:  spotRect.width  + PAD * 2,
+    height: spotRect.height + PAD * 2,
+  } : null;
+
+  // Place the tooltip card — prefer below, fall back to above if near bottom
+  const cardStyle = () => {
+    if (!sp) return { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' };
+    const cardW = 300, cardH = 220, margin = 16, vp = window.innerHeight;
+    const belowSpace = vp - (sp.top + sp.height);
+    const aboveSpace = sp.top;
+    let top, left;
+    if (belowSpace >= cardH + margin) {
+      top = sp.top + sp.height + margin;
+    } else if (aboveSpace >= cardH + margin) {
+      top = sp.top - cardH - margin;
+    } else {
+      top = Math.max(margin, vp / 2 - cardH / 2);
+    }
+    left = Math.min(Math.max(margin, sp.left), window.innerWidth - cardW - margin);
+    return { top, left, width: cardW };
+  };
+
+  const progress = ((step + 1) / steps.length) * 100;
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, pointerEvents: 'none', background: isMobileView ? 'rgba(0,0,0,0.4)' : 'none' }}>
-      <div style={{ position: 'absolute', ...pos, background: c.bgPanel, border: `1px solid ${c.teal}`, borderRadius: 14, padding: '16px 18px', maxWidth: isMobileView ? undefined : 260, pointerEvents: 'all' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontFamily: mono, fontSize: 10, color: c.teal }}>{step + 1}/{steps.length}</span>
-          <button onClick={onDone} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontFamily: mono, fontSize: 10 }}>{t.tour.skip}</button>
-        </div>
-        <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 600, color: c.text1, marginBottom: 6 }}>{steps[step].title}</p>
-        <p style={{ fontFamily: sans, fontSize: 12, color: c.text2, lineHeight: 1.6, marginBottom: 12 }}>{steps[step].body}</p>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {steps.map((_, i) => <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i === step ? c.teal : c.border, display: 'inline-block', transition: '0.2s' }} />)}
-          <button onClick={() => isLast ? onDone() : setStep(s => s + 1)}
-            style={{ marginLeft: 'auto', fontFamily: mono, fontSize: 11, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: 'pointer' }}>
-            {isLast ? t.tour.done : t.tour.next}
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, pointerEvents: 'none' }}>
+      {/* Dark overlay with spotlight hole using clip-path or SVG */}
+      {sp && (
+        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'all' }}
+          onClick={e => { if (e.target.tagName === 'path') return; }}>
+          <defs>
+            <mask id="spotlight-mask">
+              <rect width="100%" height="100%" fill="white" />
+              <rect
+                x={sp.left} y={sp.top}
+                width={sp.width} height={sp.height}
+                rx="12" fill="black"
+              />
+            </mask>
+          </defs>
+          <rect width="100%" height="100%" fill="rgba(0,0,0,0.72)" mask="url(#spotlight-mask)" />
+          {/* Glowing border around spotlight */}
+          <rect
+            x={sp.left} y={sp.top}
+            width={sp.width} height={sp.height}
+            rx="12" fill="none"
+            stroke="#2dd4bf" strokeWidth="2" opacity="0.8"
+          />
+        </svg>
+      )}
+      {!sp && (
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.72)', pointerEvents: 'all' }} />
+      )}
+
+      {/* Tooltip card */}
+      <div style={{
+        position: 'absolute', ...cardStyle(),
+        background: c.bgPanel,
+        border: `1.5px solid ${c.teal}`,
+        borderRadius: 16,
+        padding: '20px 22px',
+        pointerEvents: 'all',
+        animation: 'fpFadeIn 0.2s ease',
+        zIndex: 201,
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: mono, fontSize: 20, color: c.teal, lineHeight: 1 }}>{steps[step].icon}</span>
+            <span style={{ fontFamily: mono, fontSize: 11, color: c.teal, background: c.tealGlow, padding: '2px 8px', borderRadius: 20 }}>
+              {step + 1} / {steps.length}
+            </span>
+          </div>
+          <button onClick={onDone}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontFamily: mono, fontSize: 11, padding: '2px 6px', borderRadius: 6 }}
+            onMouseEnter={e => e.currentTarget.style.color = c.text1}
+            onMouseLeave={e => e.currentTarget.style.color = c.text3}>
+            {t.tour.skip}
           </button>
+        </div>
+
+        {/* Title */}
+        <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 600, color: c.text1, margin: '0 0 8px' }}>
+          {steps[step].title}
+        </p>
+
+        {/* Body */}
+        <p style={{ fontFamily: sans, fontSize: 13, color: c.text2, lineHeight: 1.7, margin: '0 0 16px' }}>
+          {steps[step].body}
+        </p>
+
+        {/* Progress bar */}
+        <div style={{ height: 3, background: c.border, borderRadius: 2, marginBottom: 14, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: c.teal, borderRadius: 2, transition: 'width 0.3s ease' }} />
+        </div>
+
+        {/* Navigation */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: 5 }}>
+            {steps.map((_, i) => (
+              <button key={i} onClick={() => setStep(i)}
+                style={{ width: i === step ? 16 : 6, height: 6, borderRadius: 3, background: i === step ? c.teal : c.border, border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.2s' }} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {!isFirst && (
+              <button onClick={() => setStep(s => s - 1)}
+                style={{ fontFamily: mono, fontSize: 11, padding: '6px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
+                {t.tour.back}
+              </button>
+            )}
+            <button onClick={() => isLast ? onDone() : setStep(s => s + 1)}
+              style={{ fontFamily: mono, fontSize: 11, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: 'pointer', fontWeight: 600, transition: '0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(45,212,191,0.2)'}
+              onMouseLeave={e => e.currentTarget.style.background = c.tealGlow}>
+              {isLast ? t.tour.done : t.tour.next}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1028,7 +1194,7 @@ function AppInner() {
   return (
     <div style={{ minHeight: '100vh', background: c.bgBase, color: c.text1, fontFamily: tf, display: 'flex', flexDirection: 'column', transition: 'background 0.2s, color 0.2s', overflowX: 'hidden', width: '100%' }}>
 
-      {showTour && <OnboardingTour c={c} t={t} onDone={() => { setShowTour(false); localStorage.setItem('fp_tour_done', '1'); }} />}
+      {showTour && <OnboardingTour c={c} t={t} onDone={() => { setShowTour(false); }} />}
       <AnimatedBackground isDark={isDark} paused={isLoading} />
 
       {/* ── Nav ── */}
@@ -1103,7 +1269,7 @@ function AppInner() {
 
         {/* LEFT */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', minWidth: 0, width: '100%' }}>
-          <Panel c={c} style={{ flex: isMobile || isTablet ? 'none' : '1', minHeight: isMobile ? 280 : 380, height: isMobile || isTablet ? 320 : undefined, width: '100%', minWidth: 0 }}
+          <Panel c={c} data-tour="editor" style={{ flex: isMobile || isTablet ? 'none' : '1', minHeight: isMobile ? 280 : 380, height: isMobile || isTablet ? 320 : undefined, width: '100%', minWidth: 0 }}
             onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
             {/* Top row: dots + clear */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
@@ -1120,7 +1286,7 @@ function AppInner() {
                 onMouseEnter={e => e.target.style.color = c.text1} onMouseLeave={e => e.target.style.color = c.text3}>{t.clearBtn}</button>
             </div>
             {/* Mode buttons row */}
-            <div style={{ display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
+            <div data-tour="modes" style={{ display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
               <div style={{ display: 'flex', gap: 6, padding: '8px 12px', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
                 {MODES.map(m => (
                   <button key={m} onClick={() => setMode(m)}
@@ -1161,7 +1327,7 @@ function AppInner() {
             </div>
           </Panel>
 
-          <button onClick={handleAnalyze} disabled={isLoading || !codeInput.trim() || cooldown > 0}
+          <button data-tour="analyze" onClick={handleAnalyze} disabled={isLoading || !codeInput.trim() || cooldown > 0}
             style={{ fontFamily: tf, fontSize: isMobile ? 13 : 15, fontWeight: 600, padding: '14px 0', borderRadius: 30, border: `1.5px solid ${c.tealDim}`, background: isLoading ? 'transparent' : c.tealGlow, color: c.teal, cursor: (isLoading || !codeInput.trim() || cooldown > 0) ? 'not-allowed' : 'pointer', letterSpacing: '0.4px', transition: 'all 0.2s', opacity: (!codeInput.trim() && !isLoading) ? 0.4 : 1, width: '100%', animation: isLoading ? 'fpShimmer 1.5s ease-in-out infinite' : 'none' }}>
             {isLoading
               ? (isWarmingUp ? t.warmingUp : t.analyzingBtn)
@@ -1230,7 +1396,7 @@ function AppInner() {
         </div>
 
         {/* RIGHT */}
-        <Panel c={c} style={{ minHeight: isMobile ? 400 : 380, minWidth: 0, width: '100%' }}>
+        <Panel c={c} data-tour="results" style={{ minHeight: isMobile ? 400 : 380, minWidth: 0, width: '100%' }}>
           <div style={{ display: 'flex', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface, overflowX: 'auto', scrollbarWidth: 'none' }}>
             {TAB_KEYS.map(key => {
               const accent = tabAccent[key], isActive = activeTab === key;
@@ -1408,7 +1574,7 @@ function AppInner() {
                 )}
 
                 {/* Bottom actions */}
-                <div style={{ marginTop: 20, paddingTop: 14, borderTop: `1px solid ${c.borderSoft}`, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div data-tour="actions" style={{ marginTop: 20, paddingTop: 14, borderTop: `1px solid ${c.borderSoft}`, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button onClick={() => exportToPDF(analysisResult, language, mode, locale)}
                     style={{ fontFamily: tf, fontSize: 11, padding: '7px 16px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = c.red; e.currentTarget.style.color = c.red; }}
