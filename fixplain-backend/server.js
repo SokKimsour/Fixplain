@@ -293,7 +293,11 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
       : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
 
   const localeInstruction = locale === 'km'
-    ? `IMPORTANT: Write the "explanation" and "improvementSuggestions" fields in Khmer (ភាសាខ្មែរ).`
+    ? `IMPORTANT — KHMER LANGUAGE: Write ALL user-facing text in Khmer (ភាសាខ្មែរ). This includes:
+  - Every "issue" string in bugsFound (e.g. "SQL injection vulnerability" → "ភាពងាយរងគ្រោះ SQL injection")
+  - The "explanation" field
+  - Every item in "improvementSuggestions"
+  Do NOT write any of these fields in English when locale is Khmer.`
     : '';
 
   const previousBugsInstruction = Array.isArray(previousBugs) && previousBugs.length > 0
@@ -348,7 +352,7 @@ SEVERITY DEFINITIONS — use these exact criteria, no exceptions:
   CONSISTENCY CHECK: before assigning severity, ask yourself "will this crash at runtime?" → high. "Will this give wrong output silently?" → medium. "Does it still work correctly?" → low.
 
 Respond ONLY in strict JSON with exactly these five keys:
-- "bugsFound": array of objects each with "issue" (string), "severity" ("high"|"medium"|"low"), "lineNumber" (integer or null), "confidence" (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
+- "bugsFound": array of objects each with "issue" (${locale === 'km' ? 'string in Khmer (ភាសាខ្មែរ)' : 'string'}), "severity" ("high"|"medium"|"low"), "lineNumber" (integer or null), "confidence" (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
 - "explanation": plain-language explanation referencing specific line numbers for each change. If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
