@@ -122,22 +122,22 @@ const EXT_MAP = { js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 't
 
 // Syntax highlight themes — dark and light options
 const THEMES = {
-  dark:  { 'VS Dark': vscDarkPlus, 'Dracula': dracula, 'Atom Dark': atomDark, 'Nord': nord },
+  dark: { 'VS Dark': vscDarkPlus, 'Dracula': dracula, 'Atom Dark': atomDark, 'Nord': nord },
   light: { 'One Light': oneLight },
 };
 
 // Language keyword hints for auto-detection on paste
 const LANG_HINTS = [
-  { lang: 'python',     patterns: [/^def\s+\w+\(/m, /^import\s+\w/m, /^from\s+\w+\s+import/m, /:\s*$\n\s+/m] },
+  { lang: 'python', patterns: [/^def\s+\w+\(/m, /^import\s+\w/m, /^from\s+\w+\s+import/m, /:\s*$\n\s+/m] },
   { lang: 'typescript', patterns: [/:\s*(string|number|boolean|any|void)\b/, /interface\s+\w+\s*\{/, /=>\s*\w+\s*:/, /<\w+>/] },
-  { lang: 'sql',        patterns: [/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/im] },
-  { lang: 'java',       patterns: [/public\s+(class|static|void)\b/, /System\.out\.print/] },
-  { lang: 'csharp',     patterns: [/using\s+System[;.]/, /Console\.Write/, /namespace\s+\w+/] },
-  { lang: 'ruby',       patterns: [/^def\s+\w+/m, /\.each\s+do\s*\|/, /require\s+['"]/, /puts\s+/] },
-  { lang: 'go',         patterns: [/^package\s+\w+/m, /^func\s+\w+/m, /fmt\.Print/] },
-  { lang: 'rust',       patterns: [/^fn\s+\w+/m, /let\s+mut\s+/, /println!\(/, /use\s+std::/] },
-  { lang: 'swift',      patterns: [/^func\s+\w+/m, /var\s+\w+:\s*\w+/, /print\(/, /import\s+Foundation/] },
-  { lang: 'php',        patterns: [/^<\?php/m, /\$\w+\s*=/, /echo\s+/, /->/ ] },
+  { lang: 'sql', patterns: [/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/im] },
+  { lang: 'java', patterns: [/public\s+(class|static|void)\b/, /System\.out\.print/] },
+  { lang: 'csharp', patterns: [/using\s+System[;.]/, /Console\.Write/, /namespace\s+\w+/] },
+  { lang: 'ruby', patterns: [/^def\s+\w+/m, /\.each\s+do\s*\|/, /require\s+['"]/, /puts\s+/] },
+  { lang: 'go', patterns: [/^package\s+\w+/m, /^func\s+\w+/m, /fmt\.Print/] },
+  { lang: 'rust', patterns: [/^fn\s+\w+/m, /let\s+mut\s+/, /println!\(/, /use\s+std::/] },
+  { lang: 'swift', patterns: [/^func\s+\w+/m, /var\s+\w+:\s*\w+/, /print\(/, /import\s+Foundation/] },
+  { lang: 'php', patterns: [/^<\?php/m, /\$\w+\s*=/, /echo\s+/, /->/] },
 ];
 const SEVERITY_STYLE = {
   high: { dark: { bg: 'rgba(248,113,113,0.12)', color: '#f87171' }, light: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' } },
@@ -297,29 +297,104 @@ async function decodeShare(hash) {
   } catch { return null; }
 }
 
-function exportToPDF(analysisResult, language, mode) {
+function exportToPDF(analysisResult, language, mode, locale = 'en') {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const W = 210, M = 15, CW = W - M * 2; let y = M;
   const bugs = normalizeBugs(analysisResult.bugsFound);
   const score = computeHealthScore(bugs);
+  const isKm = locale === 'km';
+
+  // ── Render Khmer text via canvas (browser uses loaded Hanuman font) ──────────
+  // jsPDF's built-in fonts are Latin-only — Khmer chars become boxes.
+  // Solution: draw Khmer text onto an offscreen canvas and embed as image.
+  const addKhmerText = (text, size = 11, color = [30, 30, 30]) => {
+    if (!text) return;
+    const lines = String(text).split('\n');
+    const pxSize = size * 1.5; // mm → px approx
+    const lineH = pxSize * 1.6;
+    const canvasW = Math.round(CW * 3.78);
+
+    lines.forEach(line => {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasW;
+      canvas.height = Math.ceil(lineH * 1.5);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = `rgb(${color.join(',')})`;
+      ctx.font = `${Math.round(pxSize)}px 'Hanuman', 'Noto Sans Khmer', sans-serif`;
+      ctx.textBaseline = 'top';
+
+      // Word-wrap manually
+      const words = line.split(' ');
+      let currentLine = '';
+      const wrappedLines = [];
+      words.forEach(word => {
+        const test = currentLine ? `${currentLine} ${word}` : word;
+        if (ctx.measureText(test).width > canvasW - 8) {
+          if (currentLine) wrappedLines.push(currentLine);
+          currentLine = word;
+        } else { currentLine = test; }
+      });
+      if (currentLine) wrappedLines.push(currentLine);
+
+      const totalH = Math.ceil(wrappedLines.length * lineH * 1.5);
+      canvas.height = totalH || Math.ceil(lineH);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = `rgb(${color.join(',')})`;
+      ctx.font = `${Math.round(pxSize)}px 'Hanuman', 'Noto Sans Khmer', sans-serif`;
+      ctx.textBaseline = 'top';
+      wrappedLines.forEach((wl, i) => ctx.fillText(wl, 0, i * lineH));
+
+      const imgH = (canvas.height / 3.78);
+      if (y + imgH > 280) { doc.addPage(); y = M; }
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', M, y, CW, imgH);
+      y += imgH + 1;
+    });
+  };
+
   const addText = (text, size = 11, bold = false, color = [30, 30, 30]) => {
+    // Route Khmer text to canvas renderer, Latin text to normal jsPDF
+    if (isKm && /[\u1780-\u17FF]/.test(String(text || ''))) {
+      addKhmerText(text, size, color);
+      return;
+    }
     doc.setFontSize(size); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setTextColor(...color);
     const lines = doc.splitTextToSize(String(text || ''), CW);
     if (y + lines.length * (size * 0.45) > 280) { doc.addPage(); y = M; }
     doc.text(lines, M, y); y += lines.length * (size * 0.45) + 2;
   };
+
   const addSection = (title, color = [13, 148, 136]) => {
     y += 4; doc.setDrawColor(...color); doc.setLineWidth(0.5); doc.line(M, y, W - M, y); y += 5;
-    addText(title, 13, true, color);
+    // Section titles are always English labels
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(String(title || ''), CW);
+    if (y + lines.length * (13 * 0.45) > 280) { doc.addPage(); y = M; }
+    doc.text(lines, M, y); y += lines.length * (13 * 0.45) + 2;
   };
+
+  // FIXED — replace with this
   const addCode = (code) => {
-    doc.setFontSize(8.5); doc.setFont('courier', 'normal'); doc.setTextColor(60, 60, 60);
-    const lines = doc.splitTextToSize(String(code || ''), CW);
+    const codeStr = String(code || '');
+    const lines = codeStr.split('\n');
     const blockH = lines.length * 3.8 + 4;
     if (y + blockH > 280) { doc.addPage(); y = M; }
-    doc.setFillColor(245, 246, 248); doc.roundedRect(M, y, CW, blockH, 2, 2, 'F'); y += 3;
-    doc.text(lines, M + 2, y); y += lines.length * 3.8 + 4;
+    doc.setFillColor(245, 246, 248); doc.roundedRect(M, y, CW, blockH, 2, 2, 'F');
+    y += 3;
+    lines.forEach(line => {
+      if (isKm && /[\u1780-\u17FF]/.test(line)) {
+        addKhmerText(line, 8, [60, 60, 60]);
+      } else {
+        doc.setFontSize(8.5); doc.setFont('courier', 'normal'); doc.setTextColor(60, 60, 60);
+        const wrapped = doc.splitTextToSize(line, CW - 4);
+        if (y + wrapped.length * 3.8 > 280) { doc.addPage(); y = M; }
+        doc.text(wrapped, M + 2, y);
+        y += wrapped.length * 3.8;
+      }
+    });
+    y += 4;
   };
+  // Header
   doc.setFillColor(13, 148, 136); doc.rect(0, 0, W, 22, 'F');
   doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
   doc.text('fixplain', M, 14);
@@ -328,17 +403,22 @@ function exportToPDF(analysisResult, language, mode) {
   doc.setTextColor(200, 240, 235);
   doc.text(`${language.toUpperCase()} · ${mode} · Health: ${score}/100 · ${new Date().toLocaleDateString()}`, W - M, 14, { align: 'right' });
   y = 30;
+
   addSection('Code Health Score');
   const scoreColor = score >= 80 ? [22, 163, 74] : score >= 50 ? [217, 119, 6] : [239, 68, 68];
   addText(`${score} / 100`, 20, true, scoreColor);
   addSection('Bugs Found');
   if (!bugs.length) { addText('No bugs detected.', 10, false, [22, 163, 74]); }
-  else bugs.forEach((b, i) => { const sc = b.severity === 'high' ? [239, 68, 68] : b.severity === 'medium' ? [217, 119, 6] : [37, 99, 235]; addText(`${i + 1}. [${(b.severity || 'medium').toUpperCase()}]${b.lineNumber ? ` Line ${b.lineNumber}` : ''} — ${b.issue}`, 10, false, sc); });
+  else bugs.forEach((b, i) => {
+    const sc = b.severity === 'high' ? [239, 68, 68] : b.severity === 'medium' ? [217, 119, 6] : [37, 99, 235];
+    addText(`${i + 1}. [${(b.severity || 'medium').toUpperCase()}]${b.lineNumber ? ` Line ${b.lineNumber}` : ''} — ${b.issue}`, 10, false, sc);
+  });
   addSection('Fixed Code'); addCode(analysisResult.fixedCode);
   if (analysisResult.commentedCode) { addSection('Commented Code'); addCode(analysisResult.commentedCode); }
   addSection('Explanation'); addText(analysisResult.explanation, 10);
   addSection('Improvement Suggestions');
   (analysisResult.improvementSuggestions || []).forEach((s, i) => addText(`${i + 1}. ${s}`, 10));
+
   const pc = doc.internal.getNumberOfPages();
   for (let p = 1; p <= pc; p++) { doc.setPage(p); doc.setFontSize(8); doc.setTextColor(150, 150, 150); doc.text(`Fixplain · Page ${p} of ${pc}`, W / 2, 292, { align: 'center' }); }
   doc.save(`fixplain-${language}-${Date.now()}.pdf`);
@@ -419,8 +499,8 @@ function HealthRing({ score, c, label, isMobile, bugs, t }) {
   const r = 20, circ = 2 * Math.PI * r;
   const fill = (score / 100) * circ;
   const color = healthColor(score, c);
-  const highBugs   = bugs.filter(b => b.severity === 'high');
-  const medBugs    = bugs.filter(b => b.severity === 'medium');
+  const highBugs = bugs.filter(b => b.severity === 'high');
+  const medBugs = bugs.filter(b => b.severity === 'medium');
   const deductions = highBugs.length * 25 + medBugs.length * 12;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 14px', background: c.bgSurface, borderRadius: 12, border: `1px solid ${c.borderSoft}`, width: isMobile ? '100%' : 'auto' }}>
@@ -443,7 +523,7 @@ function HealthRing({ score, c, label, isMobile, bugs, t }) {
         <div style={{ borderTop: `1px solid ${c.borderSoft}`, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
           <span style={{ fontFamily: mono, fontSize: 11, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.scoreBreakdown}</span>
           {highBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 12, color: c.red }}>−{highBugs.length * 25} · {highBugs.length} high {highBugs.length === 1 ? 'bug' : 'bugs'} (×25)</span>}
-          {medBugs.length > 0  && <span style={{ fontFamily: mono, fontSize: 12, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
+          {medBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 12, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
           <span style={{ fontFamily: mono, fontSize: 12, color }}>= {score}/100</span>
         </div>
       )}
@@ -473,23 +553,23 @@ function DiffView({ original, fixed, c, screenW, isDark }) {
   const diff = computeDiff(original, fixed);
   const isMobileView = screenW < 768;
 
-  const added   = diff.filter(r => r.type === 'added').length;
+  const added = diff.filter(r => r.type === 'added').length;
   const removed = diff.filter(r => r.type === 'removed').length;
   const changed = diff.filter(r => r.type === 'changed').length;
 
   // Unified line numbers
   let oNum = 1, fNum = 1;
   const rows = diff.map(row => {
-    const o = row.type !== 'added'   ? oNum++ : null;
+    const o = row.type !== 'added' ? oNum++ : null;
     const f = row.type !== 'removed' ? fNum++ : null;
     return { ...row, oNum: o, fNum: f };
   });
 
   const typeStyle = (type) => {
-    if (type === 'added')   return { bg: 'rgba(74,222,128,0.10)',  color: c.green,  symbol: '+', numColor: c.green  };
-    if (type === 'removed') return { bg: c.redGlow,               color: c.red,    symbol: '-', numColor: c.red    };
-    if (type === 'changed') return { bg: 'rgba(245,158,11,0.08)', color: c.amber,  symbol: '~', numColor: c.amber  };
-    return                         { bg: 'transparent',           color: c.text2,  symbol: ' ', numColor: c.text3  };
+    if (type === 'added') return { bg: 'rgba(74,222,128,0.10)', color: c.green, symbol: '+', numColor: c.green };
+    if (type === 'removed') return { bg: c.redGlow, color: c.red, symbol: '-', numColor: c.red };
+    if (type === 'changed') return { bg: 'rgba(245,158,11,0.08)', color: c.amber, symbol: '~', numColor: c.amber };
+    return { bg: 'transparent', color: c.text2, symbol: ' ', numColor: c.text3 };
   };
 
   // If no changes at all, show a clean message
@@ -507,8 +587,8 @@ function DiffView({ original, fixed, c, screenW, isDark }) {
       {/* Summary bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 14px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 10, flexWrap: 'wrap' }}>
         <span style={{ color: c.text3 }}>diff</span>
-        {added   > 0 && <span style={{ color: c.green }}>+{added} added</span>}
-        {removed > 0 && <span style={{ color: c.red   }}>−{removed} removed</span>}
+        {added > 0 && <span style={{ color: c.green }}>+{added} added</span>}
+        {removed > 0 && <span style={{ color: c.red }}>−{removed} removed</span>}
         {changed > 0 && <span style={{ color: c.amber }}>~{changed} changed</span>}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
           {[...Array(Math.min(20, diff.length))].map((_, i) => {
@@ -659,7 +739,7 @@ class ErrorBoundary extends Component {
 
 // ── Char limit ────────────────────────────────────────────────────────────────
 const CHAR_LIMIT = 12000;
-const CHAR_WARN  = 9000;
+const CHAR_WARN = 9000;
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 function AppInner() {
@@ -717,11 +797,11 @@ function AppInner() {
   // Streak — track consecutive days of usage
   useEffect(() => {
     const today = new Date().toDateString();
-    const last  = localStorage.getItem('fp_last_day');
+    const last = localStorage.getItem('fp_last_day');
     const saved = parseInt(localStorage.getItem('fp_streak') || '0', 10);
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     let newStreak = 1;
-    if (last === today)      newStreak = saved;
+    if (last === today) newStreak = saved;
     else if (last === yesterday) newStreak = saved + 1;
     setStreak(newStreak);
     localStorage.setItem('fp_streak', newStreak);
@@ -779,7 +859,7 @@ function AppInner() {
       }
     }
   };
-  const handleDragOver  = e => { e.preventDefault(); setIsDragging(true); };
+  const handleDragOver = e => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = e => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = e => {
     e.preventDefault(); setIsDragging(false);
@@ -854,7 +934,7 @@ function AppInner() {
     const fn = e => {
       if (document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'INPUT') return;
       if (e.key === 'ArrowRight') { const i = TAB_KEYS.indexOf(activeTab); if (i < TAB_KEYS.length - 1) switchTab(TAB_KEYS[i + 1]); }
-      if (e.key === 'ArrowLeft')  { const i = TAB_KEYS.indexOf(activeTab); if (i > 0) switchTab(TAB_KEYS[i - 1]); }
+      if (e.key === 'ArrowLeft') { const i = TAB_KEYS.indexOf(activeTab); if (i > 0) switchTab(TAB_KEYS[i - 1]); }
     };
     window.addEventListener('keydown', fn); return () => window.removeEventListener('keydown', fn);
   }, [activeTab]);
@@ -919,9 +999,26 @@ function AppInner() {
 
       {/* ── Nav ── */}
       <nav style={{ borderBottom: `1px solid ${c.borderSoft}`, padding: isMobile ? '8px 0.75rem' : '0 1.25rem', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: c.navBg, backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10, gap: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: c.teal, display: 'inline-block' }} />
-          <span style={{ fontFamily: mono, fontSize: 15, fontWeight: 600, color: c.teal, letterSpacing: '-0.3px' }}>fixplain</span>
+        <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          {isDark ? (
+            <svg width={isMobile ? 110 : 140} viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="0" width="80" height="80" rx="18" fill="#0d2d29" />
+              <path d="M22 16 C16 16 13 20 13 25 L13 32 C13 37 10 39 8 40 C10 41 13 43 13 48 L13 55 C13 60 16 64 22 64" stroke="#2dd4bf" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+              <path d="M58 16 C64 16 67 20 67 25 L67 32 C67 37 70 39 72 40 C70 41 67 43 67 48 L67 55 C67 60 64 64 58 64" stroke="#2dd4bf" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+              <polyline points="26,41 34,51 54,29" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <text x="96" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="700" fill="#2dd4bf">fix</text>
+              <text x="172" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="400" fill="#c8cdd8">plain</text>
+            </svg>
+          ) : (
+            <svg width={isMobile ? 110 : 140} viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="0" width="80" height="80" rx="18" fill="#f0faf8" stroke="#d1d5db" strokeWidth="1" />
+              <path d="M22 16 C16 16 13 20 13 25 L13 32 C13 37 10 39 8 40 C10 41 13 43 13 48 L13 55 C13 60 16 64 22 64" stroke="#0d9488" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+              <path d="M58 16 C64 16 67 20 67 25 L67 32 C67 37 70 39 72 40 C70 41 67 43 67 48 L67 55 C67 60 64 64 58 64" stroke="#0d9488" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+              <polyline points="26,41 34,51 54,29" fill="none" stroke="#111318" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <text x="96" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="700" fill="#0d9488">fix</text>
+              <text x="172" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="400" fill="#111318">plain</text>
+            </svg>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflow: 'hidden' }}>
           <select value={language} onChange={e => setLanguage(e.target.value)} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 12, padding: '6px 6px', cursor: 'pointer', outline: 'none', maxWidth: isMobile ? 90 : 'none' }}>
@@ -998,8 +1095,8 @@ function AppInner() {
               {/* Mode description */}
               <div style={{ padding: '0 12px 7px', fontFamily: tf, fontSize: 11, color: c.text3, lineHeight: 1.5 }}>
                 {{
-                  both:     locale === 'km' ? 'ជួសជុលបញ្ហា និងធ្វើឱ្យកូដស្អាតស្រស់ — ល្អបំផុតសម្រាប់ការប្រើប្រាស់ទូទៅ' : 'Fixes bugs and cleans up code structure — best for most cases',
-                  fix:      locale === 'km' ? 'ជួសជុលតែបញ្ហា ដោយមិនប៉ះពាល់ការរចនាបន្ថែម' : 'Fixes bugs only, without touching code structure or style',
+                  both: locale === 'km' ? 'ជួសជុលបញ្ហា និងធ្វើឱ្យកូដស្អាតស្រស់ — ល្អបំផុតសម្រាប់ការប្រើប្រាស់ទូទៅ' : 'Fixes bugs and cleans up code structure — best for most cases',
+                  fix: locale === 'km' ? 'ជួសជុលតែបញ្ហា ដោយមិនប៉ះពាល់ការរចនាបន្ថែម' : 'Fixes bugs only, without touching code structure or style',
                   refactor: locale === 'km' ? 'រៀបចំតែរចនាបន្ថែម ដោយសន្មត់ថាតក្ក វិជ្ជាកូដត្រឹមត្រូវ' : 'Cleans up code style only, assumes logic is already correct',
                 }[mode]}
               </div>
@@ -1016,8 +1113,8 @@ function AppInner() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 12px', background: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.redGlow : 'rgba(245,158,11,0.08)') : c.bgSurface, borderTop: `1px solid ${charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.borderSoft}`, transition: 'background 0.2s, border-color 0.2s' }}>
               {charCount >= CHAR_WARN
                 ? <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_LIMIT ? c.red : c.amber }}>
-                    {charCount >= CHAR_LIMIT ? '✗ Exceeds 12,000 char limit' : `⚠ Approaching limit (${CHAR_LIMIT - charCount} left)`}
-                  </span>
+                  {charCount >= CHAR_LIMIT ? '✗ Exceeds 12,000 char limit' : `⚠ Approaching limit (${CHAR_LIMIT - charCount} left)`}
+                </span>
                 : <span />}
               <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.text3 }}>{lineCount} {t.lines} · {charCount} {t.chars}</span>
             </div>
@@ -1028,8 +1125,8 @@ function AppInner() {
             {isLoading
               ? (isWarmingUp ? t.warmingUp : t.analyzingBtn)
               : cooldown > 0 ? `${t.readyIn} ${cooldown}s`
-              : analysisResult ? t.reanalyzeBtn
-              : t.analyzeBtn}
+                : analysisResult ? t.reanalyzeBtn
+                  : t.analyzeBtn}
           </button>
 
           {/* Health score + streak */}
@@ -1062,12 +1159,12 @@ function AppInner() {
                   const score = computeHealthScore(normalizeBugs(item.bugsFound));
                   return (
                     <button key={idx} onClick={() => {
-                        const item2 = { ...item };
-                        if (item._meta?.locale) item2._locale = item._meta.locale;
-                        setAnalysisResult(item2);
-                        if (item._meta?.codeInput) setCodeInput(item._meta.codeInput);
-                        switchTab('bugs');
-                      }}
+                      const item2 = { ...item };
+                      if (item._meta?.locale) item2._locale = item._meta.locale;
+                      setAnalysisResult(item2);
+                      if (item._meta?.codeInput) setCodeInput(item._meta.codeInput);
+                      switchTab('bugs');
+                    }}
                       style={{ width: '100%', textAlign: 'left', padding: '9px 12px', background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 12, cursor: 'pointer', transition: '0.15s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
@@ -1123,10 +1220,10 @@ function AppInner() {
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 300 }}>
                   {[
-                    { icon: '✗', color: c.red,    text: locale === 'km' ? 'បញ្ហារកឃើញ ជាមួយកម្រិតធ្ងន់ធ្ងរ'  : 'Bugs found with severity levels' },
-                    { icon: '✓', color: c.green,  text: locale === 'km' ? 'កូដដែលបានជួសជុល ត្រៀមចម្លង'        : 'Fixed code ready to copy or use' },
-                    { icon: '◈', color: c.blue,   text: locale === 'km' ? 'ការពន្យល់ច្បាស់លាស់ជាភាសារបស់អ្នក' : 'Plain-language explanation of every change' },
-                    { icon: '↑', color: c.purple, text: locale === 'km' ? '៣ ការណែនាំជាក់លាក់ដើម្បីកែលម្អ'   : '3 actionable tips to improve your code' },
+                    { icon: '✗', color: c.red, text: locale === 'km' ? 'បញ្ហារកឃើញ ជាមួយកម្រិតធ្ងន់ធ្ងរ' : 'Bugs found with severity levels' },
+                    { icon: '✓', color: c.green, text: locale === 'km' ? 'កូដដែលបានជួសជុល ត្រៀមចម្លង' : 'Fixed code ready to copy or use' },
+                    { icon: '◈', color: c.blue, text: locale === 'km' ? 'ការពន្យល់ច្បាស់លាស់ជាភាសារបស់អ្នក' : 'Plain-language explanation of every change' },
+                    { icon: '↑', color: c.purple, text: locale === 'km' ? '៣ ការណែនាំជាក់លាក់ដើម្បីកែលម្អ' : '3 actionable tips to improve your code' },
                   ].map(({ icon, color, text }) => (
                     <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: c.bgSurface, borderRadius: 8, border: `1px solid ${c.borderSoft}` }}>
                       <span style={{ color, fontSize: 14, flexShrink: 0, width: 16, textAlign: 'center' }}>{icon}</span>
@@ -1158,32 +1255,32 @@ function AppInner() {
                           </button>
                         </div>
                         {bugs.map((b, i) => (
-                      <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
-                        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
-                          <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
-                          <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
-                          <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                          {b.lineNumber && (
-                            <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
-                              style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
-                              line {b.lineNumber}
-                            </button>
-                          )}
-                          {b.confidence != null && (
-                            <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
-                              {b.confidence}% {t.confidenceLabel}
-                            </span>
-                          )}
-                          <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
-                            style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
-                            onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
-                            {fixingBug === i ? t.applying : t.applyFix}
-                          </button>
-                        </div>
-                      </div>
+                          <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
+                              <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
+                              <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
+                              <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              {b.lineNumber && (
+                                <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
+                                  style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
+                                  line {b.lineNumber}
+                                </button>
+                              )}
+                              {b.confidence != null && (
+                                <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
+                                  {b.confidence}% {t.confidenceLabel}
+                                </span>
+                              )}
+                              <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
+                                style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
+                                onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
+                                {fixingBug === i ? t.applying : t.applyFix}
+                              </button>
+                            </div>
+                          </div>
                         ))}
                       </>
                     )}
@@ -1266,7 +1363,7 @@ function AppInner() {
 
                 {/* Bottom actions */}
                 <div style={{ marginTop: 20, paddingTop: 14, borderTop: `1px solid ${c.borderSoft}`, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button onClick={() => exportToPDF(analysisResult, language, mode)}
+                  <button onClick={() => exportToPDF(analysisResult, language, mode, locale)}
                     style={{ fontFamily: tf, fontSize: 11, padding: '7px 16px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = c.red; e.currentTarget.style.color = c.red; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
