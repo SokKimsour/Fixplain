@@ -310,6 +310,9 @@ ${localeInstruction}
 ${previousBugsInstruction}
 ${alreadyFixedInstruction}
 
+OUTPUT FORMAT — THIS IS CRITICAL:
+You must respond with ONLY a valid JSON object. No preamble. No explanation before or after. No markdown fences. No code blocks. No "Here is..." text. Start your response with { and end with }. Nothing else.
+
 STRICT RULES — read carefully before responding:
 
 RULE 1 — A "bug" is ONLY one of these real problems:
@@ -328,11 +331,27 @@ RULE 4 — Self-verify fixedCode before responding:
 
 RULE 5 — Code formatting: 2-space indentation, real newlines, never a single line.
 
+RULE 6 — Confidence and severity must be consistent:
+  - If confidence < 70, do NOT include the bug in bugsFound at all.
+  - If confidence 70–89, use "low" or "medium" severity only — never "high".
+  - If confidence ≥ 90, any severity is appropriate.
+  This prevents inflating the bug count with uncertain findings that lower the health score unfairly.
+
+SEVERITY DEFINITIONS — use these exact criteria, no exceptions:
+  "high"   = bugs that WILL cause a crash, data loss, or security breach at runtime. Examples: SQL injection, missing await on async call, null dereference, division by zero, assignment instead of comparison (= vs ===).
+            → Each high bug deducts 25 points from the health score (100 − 25 per high bug).
+  "medium" = bugs that produce WRONG results silently without crashing. Examples: off-by-one errors, wrong operator (=+ instead of +=), unhandled error callbacks, logic that returns incorrect values.
+            → Each medium bug deducts 12 points from the health score.
+  "low"    = code that works but has a clear quality issue. Examples: unused variables, unreachable code, redundant conditions.
+            → Low bugs do NOT affect the health score — they are informational only.
+  NEVER use "high" for style issues. NEVER use "low" for runtime crashes. The severity must match these definitions exactly — health score accuracy depends on it.
+  CONSISTENCY CHECK: before assigning severity, ask yourself "will this crash at runtime?" → high. "Will this give wrong output silently?" → medium. "Does it still work correctly?" → low.
+
 Respond ONLY in strict JSON with exactly these five keys:
-- "bugsFound": array of objects each with "issue" (string), "severity" ("high"|"medium"|"low"), "lineNumber" (integer or null), "confidence" (integer 0-100, how certain you are this is a real bug — 100 = absolutely certain, 70 = likely, below 60 = do not report). EMPTY ARRAY if no real bugs or mode is 'refactor'.
+- "bugsFound": array of objects each with "issue" (string), "severity" ("high"|"medium"|"low"), "lineNumber" (integer or null), "confidence" (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
-- "explanation": plain-language explanation referencing specific line numbers for each change, e.g. "Line 7: changed = to === to fix assignment bug. Line 23: added empty array guard to prevent division by zero." If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
+- "explanation": plain-language explanation referencing specific line numbers for each change. If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
 - "improvementSuggestions": exactly 3 specific actionable tips. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}`;
 
   try {
@@ -373,6 +392,9 @@ app.post('/api/fix-single', rateLimiter, async (req, res) => {
 
   const systemPrompt = `Act as a world-class ${language} software engineer.
 Fix ONLY this specific bug: "${bugIssue}"
+
+OUTPUT FORMAT — THIS IS CRITICAL:
+Respond with ONLY a valid JSON object. No preamble. No explanation before or after. No markdown fences. Start with { and end with }. Nothing else.
 
 STRICT RULES:
 - Do not change any other logic, function names, or variable names.
