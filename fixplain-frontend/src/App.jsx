@@ -736,7 +736,9 @@ function AppInner() {
     if (hash) {
       decodeShare(hash).then(decoded => {
         if (decoded) {
-          setAnalysisResult(decoded.result);
+          const result = decoded.result;
+          if (decoded.locale) result._locale = decoded.locale;
+          setAnalysisResult(result);
           setLanguage(decoded.language);
           setMode(decoded.mode);
           if (decoded.codeInput) setCodeInput(decoded.codeInput);
@@ -818,6 +820,7 @@ function AppInner() {
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
+      data._locale = locale;  // tag so frontend can detect locale mismatch
       setAnalysisResult(data);
       if (!normalizeBugs(data.bugsFound).length) switchTab('fixed');
       const entry = { ...data, _meta: { language, mode, locale, time: Date.now(), codeInput } };
@@ -1059,7 +1062,9 @@ function AppInner() {
                   const score = computeHealthScore(normalizeBugs(item.bugsFound));
                   return (
                     <button key={idx} onClick={() => {
-                        setAnalysisResult(item);
+                        const item2 = { ...item };
+                        if (item._meta?.locale) item2._locale = item._meta.locale;
+                        setAnalysisResult(item2);
                         if (item._meta?.codeInput) setCodeInput(item._meta.codeInput);
                         switchTab('bugs');
                       }}
@@ -1229,11 +1234,27 @@ function AppInner() {
                 )}
 
                 {/* EXPLANATION */}
-                {activeTab === 'explain' && <p style={{ fontFamily: tf, fontSize: 15, color: c.text1, lineHeight: 1.9, margin: 0 }}>{analysisResult.explanation}</p>}
+                {activeTab === 'explain' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {analysisResult._locale && analysisResult._locale !== locale && (
+                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 12, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span>⚠</span>
+                        <span>{locale === 'km' ? 'ការពន្យល់នេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ' : 'This explanation is in Khmer — click ↺ Re-analyze to get it in English'}</span>
+                      </div>
+                    )}
+                    <p style={{ fontFamily: tf, fontSize: 15, color: c.text1, lineHeight: 1.9, margin: 0 }}>{analysisResult.explanation}</p>
+                  </div>
+                )}
 
                 {/* SUGGESTIONS */}
                 {activeTab === 'suggest' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {analysisResult._locale && analysisResult._locale !== locale && (
+                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 12, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span>⚠</span>
+                        <span>{locale === 'km' ? 'ការណែនាំនេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ' : 'These suggestions are in Khmer — click ↺ Re-analyze to get them in English'}</span>
+                      </div>
+                    )}
                     {analysisResult.improvementSuggestions?.map((s, i) => (
                       <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                         <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 }}>{i + 1}</span>
