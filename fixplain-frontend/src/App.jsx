@@ -441,10 +441,10 @@ function HealthRing({ score, c, label, isMobile, bugs, t }) {
       </div>
       {deductions > 0 && (
         <div style={{ borderTop: `1px solid ${c.borderSoft}`, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <span style={{ fontFamily: mono, fontSize: 9, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.scoreBreakdown}</span>
-          {highBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 10, color: c.red }}>−{highBugs.length * 25} · {highBugs.length} high {highBugs.length === 1 ? 'bug' : 'bugs'} (×25)</span>}
-          {medBugs.length > 0  && <span style={{ fontFamily: mono, fontSize: 10, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
-          <span style={{ fontFamily: mono, fontSize: 10, color }}>= {score}/100</span>
+          <span style={{ fontFamily: mono, fontSize: 11, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.scoreBreakdown}</span>
+          {highBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 12, color: c.red }}>−{highBugs.length * 25} · {highBugs.length} high {highBugs.length === 1 ? 'bug' : 'bugs'} (×25)</span>}
+          {medBugs.length > 0  && <span style={{ fontFamily: mono, fontSize: 12, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
+          <span style={{ fontFamily: mono, fontSize: 12, color }}>= {score}/100</span>
         </div>
       )}
     </div>
@@ -600,7 +600,7 @@ function LineNumberedEditor({ c, value, onChange, isDragging, highlightLine, pla
         </div>
       )}
       {value.trim() && (
-        <div ref={lnRef} style={{ background: c.lineNumBg, borderRight: `1px solid ${c.borderSoft}`, padding: '1rem 8px 1rem 12px', textAlign: 'right', fontFamily: mono, fontSize: 12, lineHeight: 1.8, userSelect: 'none', overflowY: 'hidden', minWidth: 44, flexShrink: 0 }}>
+        <div ref={lnRef} style={{ background: c.lineNumBg, borderRight: `1px solid ${c.borderSoft}`, padding: '1rem 8px 1rem 12px', textAlign: 'right', fontFamily: mono, fontSize: 13, lineHeight: 1.8, userSelect: 'none', overflowY: 'hidden', minWidth: 48, flexShrink: 0 }}>
           {lines.map((_, i) => (
             <div key={i} style={{ color: highlightLine === i + 1 ? c.teal : c.lineNumColor, background: highlightLine === i + 1 ? c.tealGlow : 'transparent', borderRadius: 3, transition: '0.2s' }}>
               {i + 1}
@@ -617,7 +617,7 @@ function LineNumberedEditor({ c, value, onChange, isDragging, highlightLine, pla
         placeholder={placeholder}
         style={{
           flex: 1, background: 'transparent', border: 'none', outline: 'none',
-          color: c.text1, fontFamily: mono, fontSize: 13, lineHeight: 1.8,
+          color: c.text1, fontFamily: mono, fontSize: 14, lineHeight: 1.8,
           padding: '1rem 1.25rem', resize: 'none', tabSize: 2,
           overflowY: 'auto', overflowX: 'hidden',
           minWidth: 0, width: '100%',
@@ -707,7 +707,7 @@ function AppInner() {
     if (document.getElementById('fp-styles')) return;
     const s = document.createElement('style');
     s.id = 'fp-styles';
-    s.textContent = `@keyframes fpFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}@keyframes fpShimmer{0%,100%{opacity:.3}50%{opacity:.8}}*{-webkit-tap-highlight-color:transparent;}[style*="scrollbarWidth"]::-webkit-scrollbar{display:none;}textarea::placeholder{color:#555e78;opacity:1;font-style:italic;}`;
+    s.textContent = `@keyframes fpFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}@keyframes fpShimmer{0%,100%{opacity:.3}50%{opacity:.8}}*{-webkit-tap-highlight-color:transparent;}[style*="scrollbarWidth"]::-webkit-scrollbar{display:none;}textarea::placeholder{color:#8b92a8;opacity:1;font-style:italic;font-size:13px;}*:focus-visible{outline:2px solid #2dd4bf;outline-offset:2px;border-radius:4px;}@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}`;
     document.head.appendChild(s);
   }, []);
 
@@ -912,7 +912,7 @@ function AppInner() {
     <div style={{ minHeight: '100vh', background: c.bgBase, color: c.text1, fontFamily: tf, display: 'flex', flexDirection: 'column', transition: 'background 0.2s, color 0.2s', overflowX: 'hidden', width: '100%' }}>
 
       {showTour && <OnboardingTour c={c} t={t} onDone={() => { setShowTour(false); localStorage.setItem('fp_tour_done', '1'); }} />}
-      <AnimatedBackground isDark={isDark} />
+      <AnimatedBackground isDark={isDark} paused={isLoading} />
 
       {/* ── Nav ── */}
       <nav style={{ borderBottom: `1px solid ${c.borderSoft}`, padding: isMobile ? '8px 0.75rem' : '0 1.25rem', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: c.navBg, backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10, gap: 6 }}>
@@ -937,12 +937,6 @@ function AppInner() {
               style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 10, padding: '5px 6px', cursor: 'pointer', outline: 'none' }}>
               {Object.keys(allThemes).map(name => <option key={name} value={name}>{name}</option>)}
             </select>
-          )}
-          {/* Streak badge */}
-          {streak > 0 && (
-            <span style={{ fontFamily: mono, fontSize: 10, color: c.amber, background: 'rgba(245,158,11,0.1)', border: `1px solid rgba(245,158,11,0.2)`, borderRadius: 20, padding: '4px 8px', flexShrink: 0 }}>
-              🔥 {streak} {t.streakLabel}
-            </span>
           )}
           <button onClick={() => setIsDark(p => !p)} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 11, color: c.text2, transition: '0.15s', flexShrink: 0 }}
             onMouseEnter={e => e.currentTarget.style.borderColor = c.tealDim} onMouseLeave={e => e.currentTarget.style.borderColor = c.border}>
@@ -987,15 +981,25 @@ function AppInner() {
                 onMouseEnter={e => e.target.style.color = c.text1} onMouseLeave={e => e.target.style.color = c.text3}>{t.clearBtn}</button>
             </div>
             {/* Mode buttons row */}
-            <div style={{ display: 'flex', gap: 6, padding: '8px 12px', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface, flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
-              {MODES.map(m => (
-                <button key={m} onClick={() => setMode(m)}
-                  style={{ fontFamily: tf, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${mode === m ? c.tealDim : c.border}`, background: mode === m ? c.tealGlow : 'transparent', color: mode === m ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}
-                  onMouseEnter={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; } }}
-                  onMouseLeave={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text3; } }}>
-                  {t.modes[m]}
-                </button>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
+              <div style={{ display: 'flex', gap: 6, padding: '8px 12px', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                {MODES.map(m => (
+                  <button key={m} onClick={() => setMode(m)}
+                    style={{ fontFamily: tf, fontSize: 11, padding: '5px 14px', borderRadius: 20, border: `1px solid ${mode === m ? c.tealDim : c.border}`, background: mode === m ? c.tealGlow : 'transparent', color: mode === m ? c.teal : c.text2, cursor: 'pointer', transition: '0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}
+                    onMouseEnter={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; } }}
+                    onMouseLeave={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; } }}>
+                    {t.modes[m]}
+                  </button>
+                ))}
+              </div>
+              {/* Mode description */}
+              <div style={{ padding: '0 12px 7px', fontFamily: tf, fontSize: 11, color: c.text3, lineHeight: 1.5 }}>
+                {{
+                  both:     locale === 'km' ? 'ជួសជុលបញ្ហា និងធ្វើឱ្យកូដស្អាតស្រស់ — ល្អបំផុតសម្រាប់ការប្រើប្រាស់ទូទៅ' : 'Fixes bugs and cleans up code structure — best for most cases',
+                  fix:      locale === 'km' ? 'ជួសជុលតែបញ្ហា ដោយមិនប៉ះពាល់ការរចនាបន្ថែម' : 'Fixes bugs only, without touching code structure or style',
+                  refactor: locale === 'km' ? 'រៀបចំតែរចនាបន្ថែម ដោយសន្មត់ថាតក្ក វិជ្ជាកូដត្រឹមត្រូវ' : 'Cleans up code style only, assumes logic is already correct',
+                }[mode]}
+              </div>
             </div>
             <LineNumberedEditor
               c={c}
@@ -1017,7 +1021,7 @@ function AppInner() {
           </Panel>
 
           <button onClick={handleAnalyze} disabled={isLoading || !codeInput.trim() || cooldown > 0}
-            style={{ fontFamily: tf, fontSize: isMobile ? 12 : 13, fontWeight: 600, padding: '12px 0', borderRadius: 30, border: `1.5px solid ${c.tealDim}`, background: isLoading ? 'transparent' : c.tealGlow, color: c.teal, cursor: (isLoading || !codeInput.trim() || cooldown > 0) ? 'not-allowed' : 'pointer', letterSpacing: '0.4px', transition: 'all 0.2s', opacity: (!codeInput.trim() && !isLoading) ? 0.4 : 1, width: '100%' }}>
+            style={{ fontFamily: tf, fontSize: isMobile ? 13 : 15, fontWeight: 600, padding: '14px 0', borderRadius: 30, border: `1.5px solid ${c.tealDim}`, background: isLoading ? 'transparent' : c.tealGlow, color: c.teal, cursor: (isLoading || !codeInput.trim() || cooldown > 0) ? 'not-allowed' : 'pointer', letterSpacing: '0.4px', transition: 'all 0.2s', opacity: (!codeInput.trim() && !isLoading) ? 0.4 : 1, width: '100%', animation: isLoading ? 'fpShimmer 1.5s ease-in-out infinite' : 'none' }}>
             {isLoading
               ? (isWarmingUp ? t.warmingUp : t.analyzingBtn)
               : cooldown > 0 ? `${t.readyIn} ${cooldown}s`
@@ -1025,8 +1029,21 @@ function AppInner() {
               : t.analyzeBtn}
           </button>
 
-          {/* Health score */}
-          {healthScore !== null && <HealthRing score={healthScore} c={c} label={t.codeHealth} isMobile={isMobile} bugs={bugs} t={t} />}
+          {/* Health score + streak */}
+          {healthScore !== null && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+              <div style={{ flex: 1 }}>
+                <HealthRing score={healthScore} c={c} label={t.codeHealth} isMobile={isMobile} bugs={bugs} t={t} />
+              </div>
+              {streak > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 14px', background: c.bgSurface, borderRadius: 12, border: `1px solid rgba(245,158,11,0.25)`, gap: 3, flexShrink: 0 }}>
+                  <span style={{ fontSize: 20 }}>🔥</span>
+                  <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 600, color: c.amber }}>{streak}</span>
+                  <span style={{ fontFamily: mono, fontSize: 9, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.streakLabel}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* History */}
           {history.length > 0 && (
@@ -1054,7 +1071,14 @@ function AppInner() {
                         {meta.mode && <span style={{ fontFamily: mono, fontSize: 9, padding: '1px 6px', borderRadius: 10, background: 'rgba(167,139,250,0.1)', color: c.purple }}>{meta.mode}</span>}
                         {meta.locale === 'km' && <span style={{ fontFamily: mono, fontSize: 9, padding: '1px 6px', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: c.amber }}>ខ្មែរ</span>}
                         <span style={{ fontFamily: mono, fontSize: 9, color: healthColor(score, c), marginLeft: 'auto' }}>{score}/100</span>
-                        {meta.time && <span style={{ fontFamily: mono, fontSize: 9, color: c.text3 }}>{new Date(meta.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+                        {meta.time && <span style={{ fontFamily: mono, fontSize: 9, color: c.text3 }}>{(() => {
+                          const d = new Date(meta.time), now = new Date();
+                          const today = now.toDateString(), yesterday = new Date(now - 86400000).toDateString();
+                          const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          if (d.toDateString() === today) return `Today ${time}`;
+                          if (d.toDateString() === yesterday) return `Yesterday ${time}`;
+                          return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` ${time}`;
+                        })()}</span>}
                       </div>
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>◈  {bugLabel || t.historyEmpty}</div>
                     </button>
@@ -1087,11 +1111,24 @@ function AppInner() {
             {error && <div style={{ margin: '1rem', padding: '12px 16px', background: c.redGlow, border: `1px solid ${c.red}`, borderLeft: `3px solid ${c.red}`, borderRadius: 10, color: c.red, fontFamily: tf, fontSize: 12 }}>{error}</div>}
             {isLoading && <LoadingSkeleton c={c} progressStep={isWarmingUp ? t.warmingUp : t.progressSteps[progressStep]} />}
             {!analysisResult && !isLoading && !error && (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, padding: '3rem' }}>
-                <span style={{ fontSize: 30, opacity: 0.2 }}>◈</span>
-                <span style={{ color: c.text3, fontFamily: tf, fontSize: 12 }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: '2.5rem 2rem' }}>
+                <span style={{ fontSize: 28, opacity: 0.15 }}>◈</span>
+                <p style={{ fontFamily: tf, fontSize: 13, color: c.text2, margin: 0, textAlign: 'center', lineHeight: 1.6 }}>
                   {locale === 'km' ? 'បិទភ្ជាប់កូដ ហើយចុច ⌘Enter' : 'Paste code & press ⌘Enter'}
-                </span>
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 300 }}>
+                  {[
+                    { icon: '✗', color: c.red,    text: locale === 'km' ? 'បញ្ហារកឃើញ ជាមួយកម្រិតធ្ងន់ធ្ងរ'  : 'Bugs found with severity levels' },
+                    { icon: '✓', color: c.green,  text: locale === 'km' ? 'កូដដែលបានជួសជុល ត្រៀមចម្លង'        : 'Fixed code ready to copy or use' },
+                    { icon: '◈', color: c.blue,   text: locale === 'km' ? 'ការពន្យល់ច្បាស់លាស់ជាភាសារបស់អ្នក' : 'Plain-language explanation of every change' },
+                    { icon: '↑', color: c.purple, text: locale === 'km' ? '៣ ការណែនាំជាក់លាក់ដើម្បីកែលម្អ'   : '3 actionable tips to improve your code' },
+                  ].map(({ icon, color, text }) => (
+                    <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: c.bgSurface, borderRadius: 8, border: `1px solid ${c.borderSoft}` }}>
+                      <span style={{ color, fontSize: 14, flexShrink: 0, width: 16, textAlign: 'center' }}>{icon}</span>
+                      <span style={{ fontFamily: tf, fontSize: 12, color: c.text2, lineHeight: 1.4 }}>{text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -1119,7 +1156,7 @@ function AppInner() {
                       <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
                         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
                           <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
-                          <span style={{ fontFamily: mono, fontSize: 13, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
+                          <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
                           <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -1170,7 +1207,7 @@ function AppInner() {
                     </div>
                     {fixedView === 'diff'
                       ? <DiffView original={originalCode} fixed={analysisResult.fixedCode} c={c} screenW={screenW} isDark={isDark} />
-                      : <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 13, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>
+                      : <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 14, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>
                     }
                   </div>
                 )}
@@ -1186,13 +1223,13 @@ function AppInner() {
                       </div>
                     </div>
                     {analysisResult.commentedCode
-                      ? <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 13, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
+                      ? <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 14, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
                       : <div style={{ padding: '1.5rem', background: c.bgSurface, borderRadius: 10, fontFamily: tf, fontSize: 13, color: c.text1, textAlign: 'center', lineHeight: 1.8 }}>{t.noCommented}<br /><span style={{ color: c.amber }}>{t.noCommentedHint}</span></div>}
                   </div>
                 )}
 
                 {/* EXPLANATION */}
-                {activeTab === 'explain' && <p style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.9, margin: 0 }}>{analysisResult.explanation}</p>}
+                {activeTab === 'explain' && <p style={{ fontFamily: tf, fontSize: 15, color: c.text1, lineHeight: 1.9, margin: 0 }}>{analysisResult.explanation}</p>}
 
                 {/* SUGGESTIONS */}
                 {activeTab === 'suggest' && (
@@ -1200,7 +1237,7 @@ function AppInner() {
                     {analysisResult.improvementSuggestions?.map((s, i) => (
                       <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                         <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 }}>{i + 1}</span>
-                        <span style={{ fontFamily: tf, fontSize: 13.5, color: c.text1, lineHeight: 1.65 }}>{s}</span>
+                        <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{s}</span>
                       </div>
                     ))}
                   </div>
