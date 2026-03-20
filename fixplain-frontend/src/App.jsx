@@ -152,7 +152,31 @@ const i18n = {
 
 // ── Themes ────────────────────────────────────────────────────────────────────
 const darkTheme = { bgBase: '#0d0f12', bgPanel: '#13161b', bgSurface: '#1a1e26', border: '#2a2f3d', borderSoft: '#1e2330', teal: '#2dd4bf', tealDim: '#1a8a7c', tealGlow: 'rgba(45,212,191,0.12)', red: '#f87171', redGlow: 'rgba(248,113,113,0.08)', green: '#4ade80', amber: '#f59e0b', blue: '#60a5fa', purple: '#a78bfa', text1: '#f0f2f8', text2: '#c4c9d8', text3: '#8b92a8', navBg: 'rgba(13,15,18,0.9)', codeTheme: vscDarkPlus, codeBg: '#1a1e26', lineNumBg: '#13161b', lineNumColor: '#8b92a8', isDark: true };
-const lightTheme = { bgBase: '#f5f6f8', bgPanel: '#ffffff', bgSurface: '#f0f1f4', border: '#d8dae0', borderSoft: '#e4e6ec', teal: '#0d9488', tealDim: '#0f766e', tealGlow: 'rgba(13,148,136,0.1)', red: '#ef4444', redGlow: 'rgba(239,68,68,0.06)', green: '#16a34a', amber: '#d97706', blue: '#2563eb', purple: '#7c3aed', text1: '#111318', text2: '#4b5263', text3: '#9199ab', navBg: 'rgba(245,246,248,0.92)', codeTheme: oneLight, codeBg: '#f0f1f4', lineNumBg: '#ffffff', lineNumColor: '#9199ab', isDark: false };
+const lightTheme = {
+  bgBase: '#eef1f7',
+  bgPanel: '#ffffff',
+  bgSurface: '#f4f6fb',
+  border: '#c2c8d8',
+  borderSoft: '#dde1ec',
+  teal: '#0e7490',
+  tealDim: '#0c6a82',
+  tealGlow: 'rgba(14,116,144,0.10)',
+  red: '#c0392b',
+  redGlow: 'rgba(192,57,43,0.07)',
+  green: '#15803d',
+  amber: '#92400e',
+  blue: '#1e40af',
+  purple: '#5b21b6',
+  text1: '#0a0e1a',
+  text2: '#1e2a3b',
+  text3: '#4b5873',
+  navBg: 'rgba(238,241,247,0.97)',
+  codeTheme: oneLight,
+  codeBg: '#f1f4f9',
+  lineNumBg: '#e8ecf4',
+  lineNumColor: '#4b5873',
+  isDark: false,
+};
 
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' }, { value: 'nodejs', label: 'Node.js' },

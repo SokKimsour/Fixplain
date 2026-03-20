@@ -38,7 +38,7 @@ function nextGroqClient() {
 }
 
 // ── Other provider clients ────────────────────────────────────────────────────
-const genai            = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 
 // ── Rate limiter (10 req / min per IP) ───────────────────────────────────────
@@ -148,7 +148,7 @@ async function callGroq(systemPrompt, userMessage) {
         client.chat.completions.create({
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user',   content: userMessage  },
+            { role: 'user', content: userMessage },
           ],
           model: 'llama-3.3-70b-versatile',
           response_format: { type: 'json_object' },
@@ -184,7 +184,7 @@ async function callCerebras(systemPrompt, userMessage) {
       model: 'llama-3.3-70b',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user',   content: userMessage  },
+        { role: 'user', content: userMessage },
       ],
       response_format: { type: 'json_object' },
       temperature: 0,
@@ -232,9 +232,9 @@ function withTimeout(promise, ms, name) {
 
 async function callWithFallback(systemPrompt, userMessage) {
   const providers = [
-    { name: 'Groq',     fn: () => withTimeout(callGroq(systemPrompt, userMessage),     PROVIDER_TIMEOUT_MS, 'Groq')     },
+    { name: 'Groq', fn: () => withTimeout(callGroq(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Groq') },
     { name: 'Cerebras', fn: () => withTimeout(callCerebras(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Cerebras') },
-    { name: 'Gemini',   fn: () => withTimeout(callGemini(systemPrompt, userMessage),   PROVIDER_TIMEOUT_MS, 'Gemini')   },
+    { name: 'Gemini', fn: () => withTimeout(callGemini(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Gemini') },
   ];
 
   const errors = [];
@@ -260,10 +260,10 @@ app.get('/api/ping', (req, res) => res.json({ ok: true }));
 // ── Provider status (useful for debugging on Render logs) ─────────────────────
 app.get('/api/status', (_req, res) => {
   res.json({
-    groq:     groqClients.length > 0,
+    groq: groqClients.length > 0,
     groqKeys: groqClients.length,
     cerebras: !!CEREBRAS_API_KEY,
-    gemini:   !!process.env.GEMINI_API_KEY,
+    gemini: !!process.env.GEMINI_API_KEY,
   });
 });
 
@@ -289,8 +289,8 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
     mode === 'fix'
       ? 'Focus ONLY on finding and fixing bugs. Do not refactor beyond what is needed.'
       : mode === 'refactor'
-      ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
-      : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
+        ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
+        : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
 
   const localeInstruction = locale === 'km'
     ? `IMPORTANT — KHMER LANGUAGE: Write ALL user-facing text in Khmer (ភាសាខ្មែរ). This includes:
@@ -356,7 +356,9 @@ Respond ONLY in strict JSON with exactly these five keys:
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
 - "explanation": plain-language explanation referencing specific line numbers for each change. If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
-- "improvementSuggestions": exactly 3 specific actionable tips. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}`;
+- "improvementSuggestions": array of exactly 3 objects, each with:
+    - "tip": the actionable suggestion text. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
+    - "youtubeQuery": a short English search query (4-7 words) a developer would type on YouTube to learn about this topic. Always in English regardless of locale. Example: "sql injection prevention tutorial", "javascript async await explained", "python error handling best practices".`;
 
   try {
     // Check cache first — skip if wasAlreadyFixed (re-analysis context matters)
@@ -374,7 +376,7 @@ Respond ONLY in strict JSON with exactly these five keys:
       `Analyze this ${language} code:\n${codeInput}`
     );
 
-    if (result.fixedCode)     result.fixedCode     = formatCode(result.fixedCode,     language);
+    if (result.fixedCode) result.fixedCode = formatCode(result.fixedCode, language);
     if (result.commentedCode) result.commentedCode = formatCode(result.commentedCode, language);
     result._provider = provider;
 
