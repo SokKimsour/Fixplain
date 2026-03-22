@@ -1560,9 +1560,7 @@ function AppInner() {
                             {fixingAll ? t.fixingAll : t.fixAll}
                           </button>
                         </div>
-                        {bugs.map((b, i) => {
-                          const mdnUrl = b.youtubeQuery ? `https://developer.mozilla.org/search?q=${encodeURIComponent(b.youtubeQuery)}` : null;
-                          return (
+                        {bugs.map((b, i) => (
                       <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
                         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
                           <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
@@ -1588,23 +1586,8 @@ function AppInner() {
                             {fixingBug === i ? t.applying : t.applyFix}
                           </button>
                         </div>
-                        {/* YouTube video + MDN doc link */}
-                        {b.youtubeQuery && (
-                          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            <YouTubeCard query={b.youtubeQuery} c={c} locale={locale} />
-                            {mdnUrl && (
-                              <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', width: 'fit-content', transition: '0.15s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
-                                onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
-                                📄 {locale === 'km' ? 'ឯកសារ MDN' : 'MDN Docs'}
-                              </a>
-                            )}
-                          </div>
-                        )}
                       </div>
-                          );
-                        })}
+                        ))}
                       </>
                     )}
                   </div>
@@ -1675,32 +1658,69 @@ function AppInner() {
                         <span>{locale === 'km' ? 'ការណែនាំនេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ' : 'These suggestions are in Khmer — click ↺ Re-analyze to get them in English'}</span>
                       </div>
                     )}
+
+                    {/* Clean suggestion cards — no links here */}
                     {analysisResult.improvementSuggestions?.map((s, i) => {
-                      // Handle both old format (string) and new format ({tip, youtubeQuery})
-                      const tip    = typeof s === 'string' ? s : s?.tip;
-                      const ytQ    = typeof s === 'object' ? s?.youtubeQuery : null;
-                      const mdnQ   = typeof s === 'object' ? s?.mdnQuery    : null;
-                      const mdnUrl = mdnQ ? `https://developer.mozilla.org/search?q=${encodeURIComponent(mdnQ)}` : null;
+                      const tip = typeof s === 'string' ? s : s?.tip;
                       return (
-                        <div key={i} style={{ padding: '12px 14px', background: c.bgSurface, borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                            <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
-                            <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{tip}</span>
-                          </div>
-                          {/* YouTube video card */}
-                          {ytQ && <YouTubeCard query={ytQ} c={c} locale={locale} />}
-                          {/* MDN link */}
-                          {mdnUrl && (
-                            <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', width: 'fit-content', transition: '0.15s' }}
-                              onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
-                              onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
-                              📄 {locale === 'km' ? 'ឯកសារ MDN' : 'MDN Docs'}
-                            </a>
-                          )}
+                        <div key={i} style={{ padding: '12px 14px', background: c.bgSurface, borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                          <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                          <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{tip}</span>
                         </div>
                       );
                     })}
+
+                    {/* ── References section — below all suggestions ── */}
+                    {(() => {
+                      // YouTube queries from suggestions (what to learn to improve)
+                      const ytItems = (analysisResult.improvementSuggestions || [])
+                        .filter(s => typeof s === 'object' && s?.youtubeQuery)
+                        .map(s => ({ query: s.youtubeQuery, tip: s.tip }));
+                      // MDN queries from suggestions
+                      const mdnLinks = (analysisResult.improvementSuggestions || [])
+                        .filter(s => typeof s === 'object' && s?.mdnQuery)
+                        .map(s => ({ label: s.mdnQuery, url: `https://developer.mozilla.org/search?q=${encodeURIComponent(s.mdnQuery)}` }));
+
+                      if (ytItems.length === 0 && mdnLinks.length === 0) return null;
+
+                      return (
+                        <div style={{ marginTop: 4, borderTop: `1px solid ${c.borderSoft}`, paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <span style={{ fontFamily: mono, fontSize: 10, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                            {locale === 'km' ? 'ឯកសារយោង' : 'References'}
+                          </span>
+
+                          {/* YouTube videos — one per suggestion */}
+                          {ytItems.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              <span style={{ fontFamily: mono, fontSize: 10, color: c.red, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill={c.red}><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                {locale === 'km' ? 'វីដេអូណែនាំ' : 'Tutorial videos'}
+                              </span>
+                              {ytItems.map((item, i) => (
+                                <YouTubeCard key={i} query={item.query} c={c} locale={locale} />
+                              ))}
+                            </div>
+                          )}
+
+                          {/* MDN links */}
+                          {mdnLinks.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              <span style={{ fontFamily: mono, fontSize: 10, color: c.blue }}>
+                                📄 {locale === 'km' ? 'ឯកសារ MDN' : 'MDN Documentation'}
+                              </span>
+                              {mdnLinks.map((link, i) => (
+                                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: mono, fontSize: 11, color: c.blue, textDecoration: 'none', padding: '5px 12px', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(96,165,250,0.25)' : 'rgba(29,78,216,0.2)'}`, background: isDark ? 'rgba(96,165,250,0.06)' : 'rgba(29,78,216,0.05)', width: 'fit-content', transition: '0.15s' }}
+                                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.14)' : 'rgba(29,78,216,0.1)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.06)' : 'rgba(29,78,216,0.05)'}>
+                                  → {link.label}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 

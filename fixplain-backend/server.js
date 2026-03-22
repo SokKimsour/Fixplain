@@ -356,8 +356,7 @@ Respond ONLY in strict JSON with exactly these five keys:
     - "issue": (${locale === 'km' ? 'string in Khmer (ភាសាខ្មែរ)' : 'string'})
     - "severity": ("high"|"medium"|"low")
     - "lineNumber": (integer or null)
-    - "confidence": (integer 0-100 — only report bugs with confidence ≥ 70)
-    - "youtubeQuery": a short English search query (4-6 words) to find a tutorial video about this bug type. Always English. Example: "sql injection prevention tutorial", "fix missing await async javascript". EMPTY ARRAY if no real bugs or mode is 'refactor'.
+    - "confidence": (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
 - "explanation": plain-language explanation referencing specific line numbers for each change. If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
