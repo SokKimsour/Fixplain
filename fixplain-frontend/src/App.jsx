@@ -380,42 +380,43 @@ function exportToPDF(analysisResult, language, mode, locale = 'en') {
   const addKhmerText = (text, size = 11, color = [30, 30, 30]) => {
     if (!text) return;
     const lines = String(text).split('\n');
-    const pxSize = size * 3.78; // mm → px approx
-    const lineH = pxSize * 1.6;
-    const canvasW = Math.round(CW * 3.78);
+    const SCALE = 3;
+    const pxSize = size * 1.0 * SCALE;
+    const lineH = pxSize * 2.0;   // extra tall — Khmer has vowels above/below
+    const canvasW = Math.round(CW * 3.78 * SCALE);
 
     lines.forEach(line => {
       const canvas = document.createElement('canvas');
       canvas.width = canvasW;
-      canvas.height = Math.ceil(lineH * 1.5);
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = `rgb(${color.join(',')})`;
+
       ctx.font = `${Math.round(pxSize)}px 'Hanuman', 'Noto Sans Khmer', sans-serif`;
       ctx.textBaseline = 'top';
 
-      // Word-wrap manually
+      // Word-wrap
       const words = line.split(' ');
       let currentLine = '';
       const wrappedLines = [];
       words.forEach(word => {
         const test = currentLine ? `${currentLine} ${word}` : word;
-        if (ctx.measureText(test).width > canvasW - 8) {
+        if (ctx.measureText(test).width > canvasW - 16) {
           if (currentLine) wrappedLines.push(currentLine);
           currentLine = word;
         } else { currentLine = test; }
       });
       if (currentLine) wrappedLines.push(currentLine);
 
-      const totalH = Math.ceil(wrappedLines.length * lineH * 1.5);
-      canvas.height = totalH || Math.ceil(lineH);
+      // Extra padding top + bottom so tall Khmer glyphs don't clip
+      const PAD = pxSize * 0.5;
+      canvas.height = Math.ceil(wrappedLines.length * lineH + PAD * 2) || Math.ceil(lineH + PAD * 2);
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = `rgb(${color.join(',')})`;
       ctx.font = `${Math.round(pxSize)}px 'Hanuman', 'Noto Sans Khmer', sans-serif`;
       ctx.textBaseline = 'top';
-      wrappedLines.forEach((wl, i) => ctx.fillText(wl, 0, i * lineH));
+      wrappedLines.forEach((wl, i) => ctx.fillText(wl, 0, PAD + i * lineH));
 
-      const imgH = (canvas.height / 3.78);
+      const imgH = canvas.height / 3.78 / SCALE;
       if (y + imgH > 280) { doc.addPage(); y = M; }
       doc.addImage(canvas.toDataURL('image/png'), 'PNG', M, y, CW, imgH);
       y += imgH + 1;
