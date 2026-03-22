@@ -153,29 +153,29 @@ const i18n = {
 // ── Themes ────────────────────────────────────────────────────────────────────
 const darkTheme = { bgBase: '#0d0f12', bgPanel: '#13161b', bgSurface: '#1a1e26', border: '#2a2f3d', borderSoft: '#1e2330', teal: '#2dd4bf', tealDim: '#1a8a7c', tealGlow: 'rgba(45,212,191,0.12)', red: '#f87171', redGlow: 'rgba(248,113,113,0.08)', green: '#4ade80', amber: '#f59e0b', blue: '#60a5fa', purple: '#a78bfa', text1: '#f0f2f8', text2: '#c4c9d8', text3: '#8b92a8', navBg: 'rgba(13,15,18,0.9)', codeTheme: vscDarkPlus, codeBg: '#1a1e26', lineNumBg: '#13161b', lineNumColor: '#8b92a8', isDark: true };
 const lightTheme = {
-  bgBase: '#eef1f7',
-  bgPanel: '#ffffff',
-  bgSurface: '#f4f6fb',
-  border: '#6b7280',
-  borderSoft: '#9ca3af',
-  teal: '#0e7490',
-  tealDim: '#0c6a82',
-  tealGlow: 'rgba(14,116,144,0.10)',
-  red: '#c0392b',
-  redGlow: 'rgba(192,57,43,0.07)',
-  green: '#15803d',
-  amber: '#92400e',
-  blue: '#1e40af',
-  purple: '#5b21b6',
-  text1: '#0a0e1a',
-  text2: '#1e2a3b',
-  text3: '#4b5873',
-  navBg: 'rgba(238,241,247,0.97)',
-  codeTheme: oneLight,
-  codeBg: '#f1f4f9',
-  lineNumBg: '#e8ecf4',
+  bgBase:       '#eef1f7',
+  bgPanel:      '#ffffff',
+  bgSurface:    '#f4f6fb',
+  border:       '#6b7280',
+  borderSoft:   '#9ca3af',
+  teal:         '#0e7490',
+  tealDim:      '#0c6a82',
+  tealGlow:     'rgba(14,116,144,0.10)',
+  red:          '#c0392b',
+  redGlow:      'rgba(192,57,43,0.07)',
+  green:        '#15803d',
+  amber:        '#92400e',
+  blue:         '#1e40af',
+  purple:       '#5b21b6',
+  text1:        '#0a0e1a',
+  text2:        '#1e2a3b',
+  text3:        '#4b5873',
+  navBg:        'rgba(238,241,247,0.97)',
+  codeTheme:    oneLight,
+  codeBg:       '#f1f4f9',
+  lineNumBg:    '#e8ecf4',
   lineNumColor: '#4b5873',
-  isDark: false,
+  isDark:       false,
 };
 
 const LANGUAGES = [
@@ -192,22 +192,22 @@ const EXT_MAP = { js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 't
 
 // Syntax highlight themes — dark and light options
 const THEMES = {
-  dark: { 'VS Dark': vscDarkPlus, 'Dracula': dracula, 'Atom Dark': atomDark, 'Nord': nord },
+  dark:  { 'VS Dark': vscDarkPlus, 'Dracula': dracula, 'Atom Dark': atomDark, 'Nord': nord },
   light: { 'One Light': oneLight },
 };
 
 // Language keyword hints for auto-detection on paste
 const LANG_HINTS = [
-  { lang: 'python', patterns: [/^def\s+\w+\(/m, /^import\s+\w/m, /^from\s+\w+\s+import/m, /:\s*$\n\s+/m] },
+  { lang: 'python',     patterns: [/^def\s+\w+\(/m, /^import\s+\w/m, /^from\s+\w+\s+import/m, /:\s*$\n\s+/m] },
   { lang: 'typescript', patterns: [/:\s*(string|number|boolean|any|void)\b/, /interface\s+\w+\s*\{/, /=>\s*\w+\s*:/, /<\w+>/] },
-  { lang: 'sql', patterns: [/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/im] },
-  { lang: 'java', patterns: [/public\s+(class|static|void)\b/, /System\.out\.print/] },
-  { lang: 'csharp', patterns: [/using\s+System[;.]/, /Console\.Write/, /namespace\s+\w+/] },
-  { lang: 'ruby', patterns: [/^def\s+\w+/m, /\.each\s+do\s*\|/, /require\s+['"]/, /puts\s+/] },
-  { lang: 'go', patterns: [/^package\s+\w+/m, /^func\s+\w+/m, /fmt\.Print/] },
-  { lang: 'rust', patterns: [/^fn\s+\w+/m, /let\s+mut\s+/, /println!\(/, /use\s+std::/] },
-  { lang: 'swift', patterns: [/^func\s+\w+/m, /var\s+\w+:\s*\w+/, /print\(/, /import\s+Foundation/] },
-  { lang: 'php', patterns: [/^<\?php/m, /\$\w+\s*=/, /echo\s+/, /->/] },
+  { lang: 'sql',        patterns: [/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/im] },
+  { lang: 'java',       patterns: [/public\s+(class|static|void)\b/, /System\.out\.print/] },
+  { lang: 'csharp',     patterns: [/using\s+System[;.]/, /Console\.Write/, /namespace\s+\w+/] },
+  { lang: 'ruby',       patterns: [/^def\s+\w+/m, /\.each\s+do\s*\|/, /require\s+['"]/, /puts\s+/] },
+  { lang: 'go',         patterns: [/^package\s+\w+/m, /^func\s+\w+/m, /fmt\.Print/] },
+  { lang: 'rust',       patterns: [/^fn\s+\w+/m, /let\s+mut\s+/, /println!\(/, /use\s+std::/] },
+  { lang: 'swift',      patterns: [/^func\s+\w+/m, /var\s+\w+:\s*\w+/, /print\(/, /import\s+Foundation/] },
+  { lang: 'php',        patterns: [/^<\?php/m, /\$\w+\s*=/, /echo\s+/, /->/ ] },
 ];
 const SEVERITY_STYLE = {
   high: { dark: { bg: 'rgba(248,113,113,0.12)', color: '#f87171' }, light: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' } },
@@ -538,7 +538,7 @@ function OnboardingTour({ c, t, onDone }) {
   const [step, setStep] = useState(0);
   const [spotRect, setSpotRect] = useState(null);
   const steps = t.tour.steps;
-  const isLast = step === steps.length - 1;
+  const isLast  = step === steps.length - 1;
   const isFirst = step === 0;
 
   // Selector for each step's target element
@@ -563,9 +563,9 @@ function OnboardingTour({ c, t, onDone }) {
 
   const PAD = 10; // spotlight padding around element
   const sp = spotRect ? {
-    top: spotRect.top - PAD,
-    left: spotRect.left - PAD,
-    width: spotRect.width + PAD * 2,
+    top:    spotRect.top    - PAD,
+    left:   spotRect.left   - PAD,
+    width:  spotRect.width  + PAD * 2,
     height: spotRect.height + PAD * 2,
   } : null;
 
@@ -696,8 +696,8 @@ function HealthRing({ score, c, label, isMobile, bugs, t }) {
   const r = 20, circ = 2 * Math.PI * r;
   const fill = (score / 100) * circ;
   const color = healthColor(score, c);
-  const highBugs = bugs.filter(b => b.severity === 'high');
-  const medBugs = bugs.filter(b => b.severity === 'medium');
+  const highBugs   = bugs.filter(b => b.severity === 'high');
+  const medBugs    = bugs.filter(b => b.severity === 'medium');
   const deductions = highBugs.length * 25 + medBugs.length * 12;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 14px', background: c.bgSurface, borderRadius: 12, border: `1px solid ${c.borderSoft}`, width: isMobile ? '100%' : 'auto' }}>
@@ -720,7 +720,7 @@ function HealthRing({ score, c, label, isMobile, bugs, t }) {
         <div style={{ borderTop: `1px solid ${c.borderSoft}`, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
           <span style={{ fontFamily: mono, fontSize: 11, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.scoreBreakdown}</span>
           {highBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 12, color: c.red }}>−{highBugs.length * 25} · {highBugs.length} high {highBugs.length === 1 ? 'bug' : 'bugs'} (×25)</span>}
-          {medBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 12, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
+          {medBugs.length > 0  && <span style={{ fontFamily: mono, fontSize: 12, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
           <span style={{ fontFamily: mono, fontSize: 12, color }}>= {score}/100</span>
         </div>
       )}
@@ -750,23 +750,23 @@ function DiffView({ original, fixed, c, screenW, isDark, t }) {
   const diff = computeDiff(original, fixed);
   const isMobileView = screenW < 768;
 
-  const added = diff.filter(r => r.type === 'added').length;
+  const added   = diff.filter(r => r.type === 'added').length;
   const removed = diff.filter(r => r.type === 'removed').length;
   const changed = diff.filter(r => r.type === 'changed').length;
 
   // Unified line numbers
   let oNum = 1, fNum = 1;
   const rows = diff.map(row => {
-    const o = row.type !== 'added' ? oNum++ : null;
+    const o = row.type !== 'added'   ? oNum++ : null;
     const f = row.type !== 'removed' ? fNum++ : null;
     return { ...row, oNum: o, fNum: f };
   });
 
   const typeStyle = (type) => {
-    if (type === 'added') return { bg: 'rgba(74,222,128,0.10)', color: c.green, symbol: '+', numColor: c.green };
-    if (type === 'removed') return { bg: c.redGlow, color: c.red, symbol: '-', numColor: c.red };
-    if (type === 'changed') return { bg: 'rgba(245,158,11,0.08)', color: c.amber, symbol: '~', numColor: c.amber };
-    return { bg: 'transparent', color: c.text2, symbol: ' ', numColor: c.text3 };
+    if (type === 'added')   return { bg: 'rgba(74,222,128,0.10)',  color: c.green,  symbol: '+', numColor: c.green  };
+    if (type === 'removed') return { bg: c.redGlow,               color: c.red,    symbol: '-', numColor: c.red    };
+    if (type === 'changed') return { bg: 'rgba(245,158,11,0.08)', color: c.amber,  symbol: '~', numColor: c.amber  };
+    return                         { bg: 'transparent',           color: c.text2,  symbol: ' ', numColor: c.text3  };
   };
 
   // If no changes at all, show a clean message
@@ -784,8 +784,8 @@ function DiffView({ original, fixed, c, screenW, isDark, t }) {
       {/* Summary bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 14px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 10, flexWrap: 'wrap' }}>
         <span style={{ color: c.text3 }}>diff</span>
-        {added > 0 && <span style={{ color: c.green }}>+{added} added</span>}
-        {removed > 0 && <span style={{ color: c.red }}>−{removed} removed</span>}
+        {added   > 0 && <span style={{ color: c.green }}>+{added} added</span>}
+        {removed > 0 && <span style={{ color: c.red   }}>−{removed} removed</span>}
         {changed > 0 && <span style={{ color: c.amber }}>~{changed} changed</span>}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
           {[...Array(Math.min(20, diff.length))].map((_, i) => {
@@ -917,7 +917,56 @@ function Toast({ message, visible, c, undoable }) {
   );
 }
 
-// ── Error Boundary ────────────────────────────────────────────────────────────
+// ── YouTube Video Card ────────────────────────────────────────────────────────
+// Fetches a real video from our backend /api/youtube endpoint and shows a card.
+function YouTubeCard({ query, c, locale }) {
+  const [video, setVideo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!query) return;
+    setLoading(true); setFailed(false); setVideo(null);
+    fetch(`https://ffxplain-api.onrender.com/api/youtube?q=${encodeURIComponent(query)}`)
+      .then(r => r.json())
+      .then(d => { if (d.video) setVideo(d.video); else setFailed(true); })
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false));
+  }, [query]);
+
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: 'rgba(248,113,113,0.06)', borderRadius: 8, border: `1px solid rgba(248,113,113,0.15)` }}>
+      <div style={{ width: 80, height: 45, background: 'rgba(248,113,113,0.1)', borderRadius: 6, flexShrink: 0, animation: 'fpShimmer 1.4s ease-in-out infinite' }} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <div style={{ height: 9, width: '80%', background: 'rgba(248,113,113,0.1)', borderRadius: 4, animation: 'fpShimmer 1.4s ease-in-out 0.1s infinite' }} />
+        <div style={{ height: 8, width: '50%', background: 'rgba(248,113,113,0.08)', borderRadius: 4, animation: 'fpShimmer 1.4s ease-in-out 0.2s infinite' }} />
+      </div>
+    </div>
+  );
+
+  if (failed || !video) return null;
+
+  return (
+    <a href={video.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'rgba(248,113,113,0.06)', borderRadius: 8, border: `1px solid rgba(248,113,113,0.2)`, transition: '0.15s', cursor: 'pointer' }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.4)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.06)'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.2)'; }}>
+      {/* Thumbnail */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <img src={video.thumbnail} alt="" style={{ width: 80, height: 45, objectFit: 'cover', borderRadius: 6, display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </div>
+      </div>
+      {/* Info */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: '#f87171', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{video.title}</p>
+        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: c.text3, margin: 0 }}>
+          {video.channel}{video.viewCount ? ` · ${video.viewCount} views` : ''}
+        </p>
+      </div>
+    </a>
+  );
+}
 // Catches any runtime crash inside the app and shows a friendly recovery UI
 // instead of a blank white screen. Must be a class component (React requirement).
 class ErrorBoundary extends Component {
@@ -943,7 +992,7 @@ class ErrorBoundary extends Component {
 
 // ── Char limit ────────────────────────────────────────────────────────────────
 const CHAR_LIMIT = 12000;
-const CHAR_WARN = 9000;
+const CHAR_WARN  = 9000;
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 function AppInner() {
@@ -1079,7 +1128,7 @@ function AppInner() {
       }, 100);
     }
   };
-  const handleDragOver = e => { e.preventDefault(); setIsDragging(true); };
+  const handleDragOver  = e => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = e => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = e => {
     e.preventDefault(); setIsDragging(false);
@@ -1174,7 +1223,7 @@ function AppInner() {
     const fn = e => {
       if (document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'INPUT') return;
       if (e.key === 'ArrowRight') { const i = TAB_KEYS.indexOf(activeTab); if (i < TAB_KEYS.length - 1) switchTab(TAB_KEYS[i + 1]); }
-      if (e.key === 'ArrowLeft') { const i = TAB_KEYS.indexOf(activeTab); if (i > 0) switchTab(TAB_KEYS[i - 1]); }
+      if (e.key === 'ArrowLeft')  { const i = TAB_KEYS.indexOf(activeTab); if (i > 0) switchTab(TAB_KEYS[i - 1]); }
     };
     window.addEventListener('keydown', fn); return () => window.removeEventListener('keydown', fn);
   }, [activeTab]);
@@ -1202,11 +1251,11 @@ function AppInner() {
       if (!res.ok) throw new Error();
       const data = await res.json();
       if (data.fixedCode) {
-        const formatted = formatCode(data.fixedCode, language);
-        const prev = codeInput;
-        setCodeInput(formatted);
-        showUndoToast(locale === 'km' ? 'បានជួសជុល ✓ · ប្តូរត្រឡប់?' : t.applyFix + ' ✓ · Undo?', () => setCodeInput(prev));
-      }
+          const formatted = formatCode(data.fixedCode, language);
+          const prev = codeInput;
+          setCodeInput(formatted);
+          showUndoToast(locale === 'km' ? 'បានជួសជុល ✓ · ប្តូរត្រឡប់?' : t.applyFix + ' ✓ · Undo?', () => setCodeInput(prev));
+        }
     } catch { showToast(locale === 'km' ? 'ជួសជុលបរាជ័យ' : 'Fix failed'); }
     finally { setFixingBug(null); }
   };
@@ -1247,19 +1296,19 @@ function AppInner() {
         <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           {isDark ? (
             <svg width={isMobile ? 110 : 140} viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
-              <rect x="0" y="0" width="80" height="80" rx="18" fill="#0d2d29" />
-              <path d="M22 16 C16 16 13 20 13 25 L13 32 C13 37 10 39 8 40 C10 41 13 43 13 48 L13 55 C13 60 16 64 22 64" stroke="#2dd4bf" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-              <path d="M58 16 C64 16 67 20 67 25 L67 32 C67 37 70 39 72 40 C70 41 67 43 67 48 L67 55 C67 60 64 64 58 64" stroke="#2dd4bf" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-              <polyline points="26,41 34,51 54,29" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <rect x="0" y="0" width="80" height="80" rx="18" fill="#0d2d29"/>
+              <path d="M22 16 C16 16 13 20 13 25 L13 32 C13 37 10 39 8 40 C10 41 13 43 13 48 L13 55 C13 60 16 64 22 64" stroke="#2dd4bf" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+              <path d="M58 16 C64 16 67 20 67 25 L67 32 C67 37 70 39 72 40 C70 41 67 43 67 48 L67 55 C67 60 64 64 58 64" stroke="#2dd4bf" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+              <polyline points="26,41 34,51 54,29" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
               <text x="96" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="700" fill="#2dd4bf">fix</text>
               <text x="172" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="400" fill="#c8cdd8">plain</text>
             </svg>
           ) : (
             <svg width={isMobile ? 110 : 140} viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
-              <rect x="0" y="0" width="80" height="80" rx="18" fill="#f0faf8" stroke="#d1d5db" strokeWidth="1" />
-              <path d="M22 16 C16 16 13 20 13 25 L13 32 C13 37 10 39 8 40 C10 41 13 43 13 48 L13 55 C13 60 16 64 22 64" stroke="#0d9488" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-              <path d="M58 16 C64 16 67 20 67 25 L67 32 C67 37 70 39 72 40 C70 41 67 43 67 48 L67 55 C67 60 64 64 58 64" stroke="#0d9488" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-              <polyline points="26,41 34,51 54,29" fill="none" stroke="#111318" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <rect x="0" y="0" width="80" height="80" rx="18" fill="#f0faf8" stroke="#d1d5db" strokeWidth="1"/>
+              <path d="M22 16 C16 16 13 20 13 25 L13 32 C13 37 10 39 8 40 C10 41 13 43 13 48 L13 55 C13 60 16 64 22 64" stroke="#0d9488" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+              <path d="M58 16 C64 16 67 20 67 25 L67 32 C67 37 70 39 72 40 C70 41 67 43 67 48 L67 55 C67 60 64 64 58 64" stroke="#0d9488" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+              <polyline points="26,41 34,51 54,29" fill="none" stroke="#111318" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
               <text x="96" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="700" fill="#0d9488">fix</text>
               <text x="172" y="54" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="42" fontWeight="400" fill="#111318">plain</text>
             </svg>
@@ -1323,11 +1372,11 @@ function AppInner() {
                 {!isMobile && <>&nbsp; input.{({ python: 'py', sql: 'sql', csharp: 'cs', java: 'java', php: 'php', typescript: 'ts' })[language] || 'js'}</>}
               </span>
               <button onClick={() => {
-                if (!codeInput.trim()) return;
-                const prev = codeInput;
-                setCodeInput('');
-                showUndoToast(locale === 'km' ? 'បានលុបកូដ · ប្តូរត្រឡប់?' : 'Code cleared · Undo?', () => setCodeInput(prev));
-              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontSize: 11, fontFamily: mono, padding: '2px 6px', borderRadius: 5, flexShrink: 0 }}
+                  if (!codeInput.trim()) return;
+                  const prev = codeInput;
+                  setCodeInput('');
+                  showUndoToast(locale === 'km' ? 'បានលុបកូដ · ប្តូរត្រឡប់?' : 'Code cleared · Undo?', () => setCodeInput(prev));
+                }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontSize: 11, fontFamily: mono, padding: '2px 6px', borderRadius: 5, flexShrink: 0 }}
                 onMouseEnter={e => e.target.style.color = c.text1} onMouseLeave={e => e.target.style.color = c.text3}>{t.clearBtn}</button>
             </div>
             {/* Mode buttons row */}
@@ -1345,8 +1394,8 @@ function AppInner() {
               {/* Mode description */}
               <div style={{ padding: '0 12px 7px', fontFamily: tf, fontSize: 11, color: c.text3, lineHeight: 1.5 }}>
                 {{
-                  both: locale === 'km' ? 'ជួសជុលបញ្ហា និងធ្វើឱ្យកូដស្អាតស្រស់ — ល្អបំផុតសម្រាប់ការប្រើប្រាស់ទូទៅ' : 'Fixes bugs and cleans up code structure — best for most cases',
-                  fix: locale === 'km' ? 'ជួសជុលតែបញ្ហា ដោយមិនប៉ះពាល់ការរចនាបន្ថែម' : 'Fixes bugs only, without touching code structure or style',
+                  both:     locale === 'km' ? 'ជួសជុលបញ្ហា និងធ្វើឱ្យកូដស្អាតស្រស់ — ល្អបំផុតសម្រាប់ការប្រើប្រាស់ទូទៅ' : 'Fixes bugs and cleans up code structure — best for most cases',
+                  fix:      locale === 'km' ? 'ជួសជុលតែបញ្ហា ដោយមិនប៉ះពាល់ការរចនាបន្ថែម' : 'Fixes bugs only, without touching code structure or style',
                   refactor: locale === 'km' ? 'រៀបចំតែរចនាបន្ថែម ដោយសន្មត់ថាតក្ក វិជ្ជាកូដត្រឹមត្រូវ' : 'Cleans up code style only, assumes logic is already correct',
                 }[mode]}
               </div>
@@ -1365,8 +1414,8 @@ function AppInner() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 12px', background: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.redGlow : 'rgba(245,158,11,0.08)') : c.bgSurface, borderTop: `1px solid ${charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.borderSoft}`, transition: 'background 0.2s, border-color 0.2s' }}>
               {charCount >= CHAR_WARN
                 ? <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_LIMIT ? c.red : c.amber }}>
-                  {charCount >= CHAR_LIMIT ? '✗ Exceeds 12,000 char limit' : `⚠ Approaching limit (${CHAR_LIMIT - charCount} left)`}
-                </span>
+                    {charCount >= CHAR_LIMIT ? '✗ Exceeds 12,000 char limit' : `⚠ Approaching limit (${CHAR_LIMIT - charCount} left)`}
+                  </span>
                 : <span />}
               <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.text3 }}>{lineCount} {t.lines} · {charCount} {t.chars}</span>
             </div>
@@ -1377,8 +1426,8 @@ function AppInner() {
             {isLoading
               ? (isWarmingUp ? t.warmingUp : t.analyzingBtn)
               : cooldown > 0 ? `${t.readyIn} ${cooldown}s`
-                : analysisResult ? t.reanalyzeBtn
-                  : t.analyzeBtn}
+              : analysisResult ? t.reanalyzeBtn
+              : t.analyzeBtn}
           </button>
 
           {/* Health score */}
@@ -1390,14 +1439,14 @@ function AppInner() {
               <PanelHeader c={c}>
                 <span style={{ fontFamily: tf, fontSize: 11, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.history}</span>
                 <button onClick={() => {
-                  if (!clearConfirm) {
-                    setClearConfirm(true);
-                    setTimeout(() => setClearConfirm(false), 2500);
-                  } else {
-                    clearHistory();
-                    setClearConfirm(false);
-                  }
-                }} style={{ background: 'none', border: clearConfirm ? `1px solid ${c.red}` : 'none', borderRadius: 20, padding: clearConfirm ? '2px 8px' : '0', cursor: 'pointer', color: c.red, fontFamily: tf, fontSize: 10, textTransform: 'uppercase', transition: '0.2s' }}>
+                    if (!clearConfirm) {
+                      setClearConfirm(true);
+                      setTimeout(() => setClearConfirm(false), 2500);
+                    } else {
+                      clearHistory();
+                      setClearConfirm(false);
+                    }
+                  }} style={{ background: 'none', border: clearConfirm ? `1px solid ${c.red}` : 'none', borderRadius: 20, padding: clearConfirm ? '2px 8px' : '0', cursor: 'pointer', color: c.red, fontFamily: tf, fontSize: 10, textTransform: 'uppercase', transition: '0.2s' }}>
                   {clearConfirm ? (locale === 'km' ? 'ប្រាកដ?' : 'confirm?') : t.clearAll}
                 </button>
               </PanelHeader>
@@ -1408,12 +1457,12 @@ function AppInner() {
                   const score = computeHealthScore(normalizeBugs(item.bugsFound));
                   return (
                     <button key={idx} onClick={() => {
-                      const item2 = { ...item };
-                      if (item._meta?.locale) item2._locale = item._meta.locale;
-                      setAnalysisResult(item2);
-                      if (item._meta?.codeInput) setCodeInput(item._meta.codeInput);
-                      switchTab('bugs');
-                    }}
+                        const item2 = { ...item };
+                        if (item._meta?.locale) item2._locale = item._meta.locale;
+                        setAnalysisResult(item2);
+                        if (item._meta?.codeInput) setCodeInput(item._meta.codeInput);
+                        switchTab('bugs');
+                      }}
                       style={{ width: '100%', textAlign: 'left', padding: '9px 12px', background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 12, cursor: 'pointer', transition: '0.15s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
@@ -1477,10 +1526,10 @@ function AppInner() {
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 300 }}>
                   {[
-                    { icon: '✗', color: c.red, text: locale === 'km' ? 'បញ្ហារកឃើញ ជាមួយកម្រិតធ្ងន់ធ្ងរ' : 'Bugs found with severity levels' },
-                    { icon: '✓', color: c.green, text: locale === 'km' ? 'កូដដែលបានជួសជុល ត្រៀមចម្លង' : 'Fixed code ready to copy or use' },
-                    { icon: '◈', color: c.blue, text: locale === 'km' ? 'ការពន្យល់ច្បាស់លាស់ជាភាសារបស់អ្នក' : 'Plain-language explanation of every change' },
-                    { icon: '↑', color: c.purple, text: locale === 'km' ? '៣ ការណែនាំជាក់លាក់ដើម្បីកែលម្អ' : '3 actionable tips to improve your code' },
+                    { icon: '✗', color: c.red,    text: locale === 'km' ? 'បញ្ហារកឃើញ ជាមួយកម្រិតធ្ងន់ធ្ងរ'  : 'Bugs found with severity levels' },
+                    { icon: '✓', color: c.green,  text: locale === 'km' ? 'កូដដែលបានជួសជុល ត្រៀមចម្លង'        : 'Fixed code ready to copy or use' },
+                    { icon: '◈', color: c.blue,   text: locale === 'km' ? 'ការពន្យល់ច្បាស់លាស់ជាភាសារបស់អ្នក' : 'Plain-language explanation of every change' },
+                    { icon: '↑', color: c.purple, text: locale === 'km' ? '៣ ការណែនាំជាក់លាក់ដើម្បីកែលម្អ'   : '3 actionable tips to improve your code' },
                   ].map(({ icon, color, text }) => (
                     <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: c.bgSurface, borderRadius: 8, border: `1px solid ${c.borderSoft}` }}>
                       <span style={{ color, fontSize: 14, flexShrink: 0, width: 16, textAlign: 'center' }}>{icon}</span>
@@ -1512,56 +1561,48 @@ function AppInner() {
                           </button>
                         </div>
                         {bugs.map((b, i) => {
-                          const mdnUrl = b.docQuery ? `https://developer.mozilla.org/search?q=${encodeURIComponent(b.docQuery)}` : null;
-                          const soUrl = b.docQuery ? `https://stackoverflow.com/search?q=${encodeURIComponent(b.docQuery)}` : null;
+                          const mdnUrl = b.youtubeQuery ? `https://developer.mozilla.org/search?q=${encodeURIComponent(b.youtubeQuery)}` : null;
                           return (
-                            <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
-                              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
-                                <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
-                                <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
-                                <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                                {b.lineNumber && (
-                                  <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
-                                    style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
-                                    {t.lineLabel} {b.lineNumber}
-                                  </button>
-                                )}
-                                {b.confidence != null && (
-                                  <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
-                                    {b.confidence}% {t.confidenceLabel}
-                                  </span>
-                                )}
-                                <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
-                                  style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
-                                  onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
-                                  onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
-                                  {fixingBug === i ? t.applying : t.applyFix}
-                                </button>
-                              </div>
-                              {/* Doc reference links */}
-                              {(mdnUrl || soUrl) && (
-                                <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                                  {mdnUrl && (
-                                    <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
-                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', transition: '0.15s' }}
-                                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
-                                      onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
-                                      📄 MDN Docs
-                                    </a>
-                                  )}
-                                  {soUrl && (
-                                    <a href={soUrl} target="_blank" rel="noopener noreferrer"
-                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.amber, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(245,158,11,0.3)' : 'rgba(180,83,9,0.25)'}`, background: isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)', transition: '0.15s' }}
-                                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.15)' : 'rgba(180,83,9,0.12)'}
-                                      onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)'}>
-                                      💬 Stack Overflow
-                                    </a>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                      <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
+                          <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
+                          <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
+                          <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          {b.lineNumber && (
+                            <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
+                              style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
+                              {t.lineLabel} {b.lineNumber}
+                            </button>
+                          )}
+                          {b.confidence != null && (
+                            <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
+                              {b.confidence}% {t.confidenceLabel}
+                            </span>
+                          )}
+                          <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
+                            style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
+                            onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
+                            {fixingBug === i ? t.applying : t.applyFix}
+                          </button>
+                        </div>
+                        {/* YouTube video + MDN doc link */}
+                        {b.youtubeQuery && (
+                          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <YouTubeCard query={b.youtubeQuery} c={c} locale={locale} />
+                            {mdnUrl && (
+                              <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', width: 'fit-content', transition: '0.15s' }}
+                                onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
+                                onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
+                                📄 {locale === 'km' ? 'ឯកសារ MDN' : 'MDN Docs'}
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
                           );
                         })}
                       </>
@@ -1636,47 +1677,26 @@ function AppInner() {
                     )}
                     {analysisResult.improvementSuggestions?.map((s, i) => {
                       // Handle both old format (string) and new format ({tip, youtubeQuery})
-                      const tip = typeof s === 'string' ? s : s?.tip;
-                      const query = typeof s === 'object' ? s?.youtubeQuery : null;
-                      const mdnQ = typeof s === 'object' ? s?.mdnQuery : null;
-                      const soQ = typeof s === 'object' ? s?.soQuery : null;
-                      const ytUrl = query ? `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}` : null;
+                      const tip    = typeof s === 'string' ? s : s?.tip;
+                      const ytQ    = typeof s === 'object' ? s?.youtubeQuery : null;
+                      const mdnQ   = typeof s === 'object' ? s?.mdnQuery    : null;
                       const mdnUrl = mdnQ ? `https://developer.mozilla.org/search?q=${encodeURIComponent(mdnQ)}` : null;
-                      const soUrl = soQ ? `https://stackoverflow.com/search?q=${encodeURIComponent(soQ)}` : null;
                       return (
-                        <div key={i} style={{ padding: '12px 14px', background: c.bgSurface, borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div key={i} style={{ padding: '12px 14px', background: c.bgSurface, borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
                           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                             <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
                             <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{tip}</span>
                           </div>
-                          {(ytUrl || mdnUrl || soUrl) && (
-                            <div style={{ display: 'flex', gap: 6, marginLeft: 36, flexWrap: 'wrap' }}>
-                              {ytUrl && (
-                                <a href={ytUrl} target="_blank" rel="noopener noreferrer"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.red, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(248,113,113,0.3)' : 'rgba(220,38,38,0.25)'}`, background: isDark ? 'rgba(248,113,113,0.08)' : 'rgba(220,38,38,0.06)', transition: '0.15s' }}
-                                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(248,113,113,0.15)' : 'rgba(220,38,38,0.12)'}
-                                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(248,113,113,0.08)' : 'rgba(220,38,38,0.06)'}>
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill={c.red}><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
-                                  {locale === 'km' ? 'YouTube' : 'YouTube'}
-                                </a>
-                              )}
-                              {mdnUrl && (
-                                <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', transition: '0.15s' }}
-                                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
-                                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
-                                  📄 MDN
-                                </a>
-                              )}
-                              {soUrl && (
-                                <a href={soUrl} target="_blank" rel="noopener noreferrer"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.amber, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(245,158,11,0.3)' : 'rgba(180,83,9,0.25)'}`, background: isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)', transition: '0.15s' }}
-                                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.15)' : 'rgba(180,83,9,0.12)'}
-                                  onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(245,158,11,0.08)' : 'rgba(180,83,9,0.06)'}>
-                                  💬 Stack Overflow
-                                </a>
-                              )}
-                            </div>
+                          {/* YouTube video card */}
+                          {ytQ && <YouTubeCard query={ytQ} c={c} locale={locale} />}
+                          {/* MDN link */}
+                          {mdnUrl && (
+                            <a href={mdnUrl} target="_blank" rel="noopener noreferrer"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 10, color: c.blue, textDecoration: 'none', padding: '3px 8px', borderRadius: 20, border: `1px solid ${isDark ? 'rgba(96,165,250,0.3)' : 'rgba(29,78,216,0.25)'}`, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)', width: 'fit-content', transition: '0.15s' }}
+                              onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(29,78,216,0.12)'}
+                              onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.08)' : 'rgba(29,78,216,0.06)'}>
+                              📄 {locale === 'km' ? 'ឯកសារ MDN' : 'MDN Docs'}
+                            </a>
                           )}
                         </div>
                       );

@@ -38,7 +38,7 @@ function nextGroqClient() {
 }
 
 // ── Other provider clients ────────────────────────────────────────────────────
-const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genai            = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 
 // ── Rate limiter (10 req / min per IP) ───────────────────────────────────────
@@ -148,7 +148,7 @@ async function callGroq(systemPrompt, userMessage) {
         client.chat.completions.create({
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage },
+            { role: 'user',   content: userMessage  },
           ],
           model: 'llama-3.3-70b-versatile',
           response_format: { type: 'json_object' },
@@ -184,7 +184,7 @@ async function callCerebras(systemPrompt, userMessage) {
       model: 'llama-3.3-70b',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
+        { role: 'user',   content: userMessage  },
       ],
       response_format: { type: 'json_object' },
       temperature: 0,
@@ -232,9 +232,9 @@ function withTimeout(promise, ms, name) {
 
 async function callWithFallback(systemPrompt, userMessage) {
   const providers = [
-    { name: 'Groq', fn: () => withTimeout(callGroq(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Groq') },
+    { name: 'Groq',     fn: () => withTimeout(callGroq(systemPrompt, userMessage),     PROVIDER_TIMEOUT_MS, 'Groq')     },
     { name: 'Cerebras', fn: () => withTimeout(callCerebras(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Cerebras') },
-    { name: 'Gemini', fn: () => withTimeout(callGemini(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Gemini') },
+    { name: 'Gemini',   fn: () => withTimeout(callGemini(systemPrompt, userMessage),   PROVIDER_TIMEOUT_MS, 'Gemini')   },
   ];
 
   const errors = [];
@@ -260,10 +260,10 @@ app.get('/api/ping', (req, res) => res.json({ ok: true }));
 // ── Provider status (useful for debugging on Render logs) ─────────────────────
 app.get('/api/status', (_req, res) => {
   res.json({
-    groq: groqClients.length > 0,
+    groq:     groqClients.length > 0,
     groqKeys: groqClients.length,
     cerebras: !!CEREBRAS_API_KEY,
-    gemini: !!process.env.GEMINI_API_KEY,
+    gemini:   !!process.env.GEMINI_API_KEY,
   });
 });
 
@@ -289,8 +289,8 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
     mode === 'fix'
       ? 'Focus ONLY on finding and fixing bugs. Do not refactor beyond what is needed.'
       : mode === 'refactor'
-        ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
-        : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
+      ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
+      : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
 
   const localeInstruction = locale === 'km'
     ? `IMPORTANT — KHMER LANGUAGE: Write ALL user-facing text in Khmer (ភាសាខ្មែរ). This includes:
@@ -357,15 +357,14 @@ Respond ONLY in strict JSON with exactly these five keys:
     - "severity": ("high"|"medium"|"low")
     - "lineNumber": (integer or null)
     - "confidence": (integer 0-100 — only report bugs with confidence ≥ 70)
-    - "docQuery": a short English search query (3-6 words) for MDN or official docs about this bug type. Always English. Example: "async await javascript", "sql injection prevention", "null reference error". EMPTY ARRAY if no real bugs or mode is 'refactor'.
+    - "youtubeQuery": a short English search query (4-6 words) to find a tutorial video about this bug type. Always English. Example: "sql injection prevention tutorial", "fix missing await async javascript". EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
 - "explanation": plain-language explanation referencing specific line numbers for each change. If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
 - "improvementSuggestions": array of exactly 3 objects, each with:
     - "tip": the actionable suggestion text. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
-    - "youtubeQuery": a short English search query (4-7 words) for YouTube. Always English. Example: "sql injection prevention tutorial", "javascript async await explained".
-    - "mdnQuery": a short English search query (3-6 words) for MDN Web Docs or official language documentation. Always English. Example: "Promise async await", "array methods javascript", "python list comprehension".
-    - "soQuery": a short English search query (3-6 words) for Stack Overflow. Always English. Example: "sql injection parameterized query", "fix missing await async javascript".`;
+    - "youtubeQuery": a short English search query (4-6 words) for a YouTube tutorial. Always English. Example: "javascript async await explained", "python error handling best practices".
+    - "mdnQuery": a short English search query (3-5 words) for MDN Web Docs. Always English. Example: "Promise async await", "array methods javascript".`;
 
   try {
     // Check cache first — skip if wasAlreadyFixed (re-analysis context matters)
@@ -383,7 +382,7 @@ Respond ONLY in strict JSON with exactly these five keys:
       `Analyze this ${language} code:\n${codeInput}`
     );
 
-    if (result.fixedCode) result.fixedCode = formatCode(result.fixedCode, language);
+    if (result.fixedCode)     result.fixedCode     = formatCode(result.fixedCode,     language);
     if (result.commentedCode) result.commentedCode = formatCode(result.commentedCode, language);
     result._provider = provider;
 
@@ -428,6 +427,50 @@ Respond ONLY in strict JSON with one key:
   } catch (err) {
     console.error('All providers failed:', err.message);
     res.status(500).json({ error: 'Fix failed. All providers are currently unavailable.' });
+  }
+});
+
+
+// ── YouTube video search endpoint ─────────────────────────────────────────────
+// Calls YouTube Data API v3 to find 1 relevant video for a given query.
+// Returns videoId, title, thumbnail, channelTitle, viewCount.
+app.get('/api/youtube', async (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.status(400).json({ error: 'Missing query' });
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) return res.status(503).json({ error: 'YouTube API not configured' });
+
+  try {
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=1&relevanceLanguage=en&key=${key}`;
+    const searchRes = await fetch(searchUrl);
+    if (!searchRes.ok) throw new Error(`YouTube API ${searchRes.status}`);
+    const searchData = await searchRes.json();
+
+    const item = searchData.items?.[0];
+    if (!item) return res.json({ video: null });
+
+    const videoId = item.id?.videoId;
+    const snippet = item.snippet;
+
+    // Get view count via videos endpoint
+    const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${key}`;
+    const statsRes = await fetch(statsUrl);
+    const statsData = await statsRes.json();
+    const viewCount = statsData.items?.[0]?.statistics?.viewCount || null;
+
+    res.json({
+      video: {
+        videoId,
+        title:        snippet.title,
+        channel:      snippet.channelTitle,
+        thumbnail:    snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url,
+        viewCount:    viewCount ? parseInt(viewCount).toLocaleString() : null,
+        url:          `https://www.youtube.com/watch?v=${videoId}`,
+      }
+    });
+  } catch (err) {
+    console.error('[YouTube]', err.message);
+    res.status(500).json({ error: 'YouTube search failed' });
   }
 });
 
