@@ -297,7 +297,7 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
   - Every "issue" string in bugsFound (e.g. "SQL injection vulnerability" → "ភាពងាយរងគ្រោះ SQL injection")
   - The "explanation" field
   - Every item in "improvementSuggestions"
-  Do NOT write any of these fields in English when locale is Khmer.`
+  CRITICAL: Do NOT translate string literals, variable names, function names, or any actual code content inside fixedCode or commentedCode. Only JSDoc comment text above functions may be in Khmer. Code must remain valid and unchanged.`
     : '';
 
   const previousBugsInstruction = Array.isArray(previousBugs) && previousBugs.length > 0
