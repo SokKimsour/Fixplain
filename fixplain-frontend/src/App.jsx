@@ -1337,6 +1337,16 @@ function AppInner() {
             <span style={{ fontSize: 13 }}>{isDark ? '☀' : '☾'}</span>
             {!isMobile && (isDark ? t.light : t.dark)}
           </button>
+          {/* Powered by AI badge */}
+          {!isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, border: `1px solid ${c.borderSoft}`, background: c.bgSurface, flexShrink: 0 }}>
+              <span style={{ fontSize: 10 }}>⚡</span>
+              <span style={{ fontFamily: mono, fontSize: 9, color: c.text3 }}>
+                {locale === 'km' ? 'ដំណើរការដោយ' : 'Powered by'}
+              </span>
+              <span style={{ fontFamily: mono, fontSize: 9, color: c.teal, fontWeight: 600 }}>Groq</span>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -1749,10 +1759,7 @@ function AppInner() {
       {/* Status */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 8, fontFamily: mono, fontSize: 10, color: c.text2, padding: `0 ${isMobile ? '0.75rem' : '1.25rem'} 1rem`, flexWrap: 'wrap' }}>
         <span style={{ width: 5, height: 5, borderRadius: '50%', background: c.green, display: 'inline-block' }} />
-        {t.connected} · ffxplain-api.onrender.com &nbsp;·&nbsp; {LANGUAGES.find(l => l.value === language)?.label} &nbsp;·&nbsp; {t.modes[mode]}
-        {analysisResult?._provider && (
-          <>&nbsp;·&nbsp; via <span style={{ color: c.teal }}>{analysisResult._provider}</span></>
-        )}
+        {t.connected} &nbsp;·&nbsp; {LANGUAGES.find(l => l.value === language)?.label} &nbsp;·&nbsp; {t.modes[mode]}
       </div>
 
       <Toast message={toastMsg} visible={toastVisible} undoable={toastUndoable} c={c} />
