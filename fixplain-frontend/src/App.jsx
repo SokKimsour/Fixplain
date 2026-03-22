@@ -1337,16 +1337,6 @@ function AppInner() {
             <span style={{ fontSize: 13 }}>{isDark ? '☀' : '☾'}</span>
             {!isMobile && (isDark ? t.light : t.dark)}
           </button>
-          {/* Powered by AI badge */}
-          {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, border: `1px solid ${c.borderSoft}`, background: c.bgSurface, flexShrink: 0 }}>
-              <span style={{ fontSize: 10 }}>⚡</span>
-              <span style={{ fontFamily: mono, fontSize: 9, color: c.text3 }}>
-                {locale === 'km' ? 'ដំណើរការដោយ' : 'Powered by'}
-              </span>
-              <span style={{ fontFamily: mono, fontSize: 9, color: c.teal, fontWeight: 600 }}>Groq</span>
-            </div>
-          )}
         </div>
       </nav>
 
@@ -1355,6 +1345,11 @@ function AppInner() {
         <h1 style={{ fontSize: isMobile ? 'clamp(20px,6vw,28px)' : 'clamp(26px,4vw,38px)', fontWeight: 600, letterSpacing: locale === 'km' ? 0 : '-1px', lineHeight: 1.3, margin: 0, fontFamily: tf }}>
           {locale === 'km' ? t.tagline : <>Fix it. <span style={{ color: c.teal }}>Explain it.</span> Learn from it.</>}
         </h1>
+        {/* Powered by Groq */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 8 }}>
+          <span style={{ fontFamily: mono, fontSize: 10, color: c.text3 }}>{locale === 'km' ? 'ដំណើរការដោយ' : 'Powered by'}</span>
+          <span style={{ fontFamily: mono, fontSize: 10, color: c.teal, fontWeight: 600 }}>Groq</span>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap', padding: '0 1rem' }}>
           <span style={{ fontFamily: mono, fontSize: 10, color: c.text3 }}>{t.tryExample}:</span>
           {t.examples.map((ex, i) => (
