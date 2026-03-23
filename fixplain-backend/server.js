@@ -38,7 +38,7 @@ function nextGroqClient() {
 }
 
 // ── Other provider clients ────────────────────────────────────────────────────
-const genai            = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 
 // ── Rate limiter (10 req / min per IP) ───────────────────────────────────────
@@ -148,12 +148,12 @@ async function callGroq(systemPrompt, userMessage) {
         client.chat.completions.create({
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user',   content: userMessage  },
+            { role: 'user', content: userMessage },
           ],
           model: 'llama-3.3-70b-versatile',
           response_format: { type: 'json_object' },
           temperature: 0,
-          max_tokens: 4096,
+          max_tokens: 2048,
         }),
         PROVIDER_TIMEOUT_MS,
         `Groq key ${i + 1}`
@@ -184,11 +184,11 @@ async function callCerebras(systemPrompt, userMessage) {
       model: 'llama-3.3-70b',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user',   content: userMessage  },
+        { role: 'user', content: userMessage },
       ],
       response_format: { type: 'json_object' },
       temperature: 0,
-      max_tokens: 4096,
+      max_tokens: 2048,
     }),
   });
 
@@ -232,9 +232,9 @@ function withTimeout(promise, ms, name) {
 
 async function callWithFallback(systemPrompt, userMessage) {
   const providers = [
-    { name: 'Groq',     fn: () => withTimeout(callGroq(systemPrompt, userMessage),     PROVIDER_TIMEOUT_MS, 'Groq')     },
+    { name: 'Groq', fn: () => withTimeout(callGroq(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Groq') },
     { name: 'Cerebras', fn: () => withTimeout(callCerebras(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Cerebras') },
-    { name: 'Gemini',   fn: () => withTimeout(callGemini(systemPrompt, userMessage),   PROVIDER_TIMEOUT_MS, 'Gemini')   },
+    { name: 'Gemini', fn: () => withTimeout(callGemini(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Gemini') },
   ];
 
   const errors = [];
@@ -260,10 +260,10 @@ app.get('/api/ping', (req, res) => res.json({ ok: true }));
 // ── Provider status (useful for debugging on Render logs) ─────────────────────
 app.get('/api/status', (_req, res) => {
   res.json({
-    groq:     groqClients.length > 0,
+    groq: groqClients.length > 0,
     groqKeys: groqClients.length,
     cerebras: !!CEREBRAS_API_KEY,
-    gemini:   !!process.env.GEMINI_API_KEY,
+    gemini: !!process.env.GEMINI_API_KEY,
   });
 });
 
@@ -289,8 +289,8 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
     mode === 'fix'
       ? 'Focus ONLY on finding and fixing bugs. Do not refactor beyond what is needed.'
       : mode === 'refactor'
-      ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
-      : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
+        ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
+        : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
 
   const localeInstruction = locale === 'km'
     ? `IMPORTANT — KHMER LANGUAGE: Write ALL user-facing text in Khmer (ភាសាខ្មែរ). This includes:
@@ -381,7 +381,7 @@ Respond ONLY in strict JSON with exactly these five keys:
       `Analyze this ${language} code:\n${codeInput}`
     );
 
-    if (result.fixedCode)     result.fixedCode     = formatCode(result.fixedCode,     language);
+    if (result.fixedCode) result.fixedCode = formatCode(result.fixedCode, language);
     if (result.commentedCode) result.commentedCode = formatCode(result.commentedCode, language);
     result._provider = provider;
 
@@ -460,11 +460,11 @@ app.get('/api/youtube', async (req, res) => {
     res.json({
       video: {
         videoId,
-        title:        snippet.title,
-        channel:      snippet.channelTitle,
-        thumbnail:    snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url,
-        viewCount:    viewCount ? parseInt(viewCount).toLocaleString() : null,
-        url:          `https://www.youtube.com/watch?v=${videoId}`,
+        title: snippet.title,
+        channel: snippet.channelTitle,
+        thumbnail: snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url,
+        viewCount: viewCount ? parseInt(viewCount).toLocaleString() : null,
+        url: `https://www.youtube.com/watch?v=${videoId}`,
       }
     });
   } catch (err) {

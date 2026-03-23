@@ -1052,6 +1052,9 @@ function AppInner() {
 
   // Load history + check for shared result in URL hash
   useEffect(() => {
+    // Wake up Render immediately on page load — eliminates cold start delay
+    fetch('https://ffxplain-api.onrender.com/api/ping').catch(() => { });
+
     // Fix: wrap in try/catch — JSON.parse throws on corrupted data or incognito mode
     try {
       const saved = localStorage.getItem('fixplain_history');
