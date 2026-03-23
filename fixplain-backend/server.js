@@ -518,3 +518,4 @@ app.listen(PORT, () => {
   console.log(`Fixplain backend live on port ${PORT}`);
   console.log(`Providers: Groq=${groqClients.length} keys | Cerebras=${!!CEREBRAS_API_KEY} | Gemini=${!!process.env.GEMINI_API_KEY}`);
 });
+
