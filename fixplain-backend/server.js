@@ -359,17 +359,24 @@ Respond ONLY in strict JSON with exactly these five keys:
     - "confidence": (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
-- "explanation": a detailed, beginner-friendly explanation written like a senior developer teaching a junior. Structure it as follows:
-    1. Start with one sentence summarizing what the overall code does.
-    2. For EACH bug or change, write a separate paragraph that includes:
-       - "Line X:" at the start
-       - What the original code was doing wrong and WHY it is a problem
-       - What the fix does and WHY it is the correct solution
-       - A real-world consequence if the bug was left unfixed (e.g. "This allows an attacker to delete your entire database")
-    3. End with one sentence about what the developer should remember going forward.
-    Use simple language. Avoid jargon. Write as if explaining to someone who is learning to code.
-    If code was already clean, explain what the code does well and why it is correct.
-    ${locale === 'km' ? 'Write entirely in Khmer (ភាសាខ្មែរ).' : ''}
+- "explanation": a clear, structured explanation written like a senior developer teaching a junior. Use this exact format:
+
+    OVERVIEW: [One sentence — what this code is supposed to do]
+
+    For each bug or change, use this block:
+    LINE [X] — [Short title of what changed]
+    • Problem: [What was wrong and why it is dangerous or incorrect]
+    • Fix: [What was changed and why it solves the problem]
+    • Impact: [What would happen in real life if this bug was left unfixed]
+
+    REMEMBER: [One key takeaway the developer should not forget]
+
+    Rules:
+    - Use simple words. No jargon. Write for a beginner.
+    - Every bug must have its own LINE block.
+    - Keep each bullet point to 1-2 sentences maximum.
+    - If code was already clean, write: "OVERVIEW: This code is correct. Here is what it does well:" then explain each part.
+    ${locale === 'km' ? 'Write entirely in Khmer (ភាសាខ្មែរ). Keep the same format structure (OVERVIEW, LINE, Problem, Fix, Impact, REMEMBER) but translate all labels and content to Khmer.' : ''}
 - "improvementSuggestions": array of exactly 3 objects, each with:
     - "tip": the actionable suggestion text. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
     - "youtubeQuery": a short English search query (4-6 words) for a YouTube tutorial. Always English. Example: "javascript async await explained", "python error handling best practices".

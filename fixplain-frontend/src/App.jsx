@@ -1654,7 +1654,75 @@ function AppInner() {
                         <span>{locale === 'km' ? 'ការពន្យល់នេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ' : 'This explanation is in Khmer — click ↺ Re-analyze to get it in English'}</span>
                       </div>
                     )}
-                    <p style={{ fontFamily: tf, fontSize: 15, color: c.text1, lineHeight: 1.9, margin: 0 }}>{analysisResult.explanation}</p>
+                    {(() => {
+                      const raw = analysisResult.explanation || '';
+                      // Try to parse structured format
+                      const lines = raw.split('\n').filter(l => l.trim());
+                      const blocks = [];
+                      let currentBlock = null;
+
+                      lines.forEach(line => {
+                        const t = line.trim();
+                        if (t.startsWith('OVERVIEW:') || t.startsWith('ទិដ្ឋភាពទូទៅ:') || t.startsWith('ទិដ្ឋភាព:')) {
+                          blocks.push({ type: 'overview', text: t.replace(/^[^:]+:\s*/, '') });
+                        } else if (t.startsWith('REMEMBER:') || t.startsWith('ចងចាំ:') || t.startsWith('ចំណាំ:')) {
+                          blocks.push({ type: 'remember', text: t.replace(/^[^:]+:\s*/, '') });
+                        } else if (/^LINE\s+\d+/i.test(t) || /^បន្ទាត់\s+\d+/i.test(t)) {
+                          currentBlock = { type: 'line', title: t, bullets: [] };
+                          blocks.push(currentBlock);
+                        } else if ((t.startsWith('•') || t.startsWith('-') || t.startsWith('·')) && currentBlock?.type === 'line') {
+                          currentBlock.bullets.push(t.replace(/^[•\-·]\s*/, ''));
+                        } else if (currentBlock?.type === 'line') {
+                          currentBlock.bullets.push(t);
+                        } else {
+                          blocks.push({ type: 'text', text: t });
+                        }
+                      });
+
+                      // If no structured format detected, fall back to plain text
+                      if (blocks.filter(b => b.type === 'line').length === 0) {
+                        return <p style={{ fontFamily: tf, fontSize: 15, color: c.text1, lineHeight: 1.9, margin: 0 }}>{raw}</p>;
+                      }
+
+                      return blocks.map((block, i) => {
+                        if (block.type === 'overview') return (
+                          <div key={i} style={{ padding: '10px 14px', background: c.bgSurface, borderRadius: 8, border: `1px solid ${c.borderSoft}`, borderLeft: `3px solid ${c.teal}` }}>
+                            <span style={{ fontFamily: mono, fontSize: 10, color: c.teal, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>Overview</span>
+                            <p style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>
+                          </div>
+                        );
+                        if (block.type === 'remember') return (
+                          <div key={i} style={{ padding: '10px 14px', background: isDark ? 'rgba(45,212,191,0.06)' : 'rgba(13,122,110,0.06)', borderRadius: 8, border: `1px solid ${c.tealDim}`, borderLeft: `3px solid ${c.teal}` }}>
+                            <span style={{ fontFamily: mono, fontSize: 10, color: c.teal, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>Remember</span>
+                            <p style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>
+                          </div>
+                        );
+                        if (block.type === 'line') return (
+                          <div key={i} style={{ padding: '12px 14px', background: c.redGlow, borderRadius: 8, borderLeft: `3px solid ${c.red}` }}>
+                            <p style={{ fontFamily: mono, fontSize: 12, color: c.red, fontWeight: 600, margin: '0 0 8px' }}>{block.title}</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {block.bullets.map((bullet, bi) => {
+                                const isProb = bullet.toLowerCase().startsWith('problem:') || bullet.startsWith('បញ្ហា:') || bullet.startsWith('• Problem');
+                                const isFix = bullet.toLowerCase().startsWith('fix:') || bullet.startsWith('ការជួសជុល:') || bullet.startsWith('• Fix');
+                                const isImp = bullet.toLowerCase().startsWith('impact:') || bullet.startsWith('ផលប៉ះពាល់:') || bullet.startsWith('• Impact');
+                                const dotColor = isProb ? c.red : isFix ? c.green : isImp ? c.amber : c.text3;
+                                const label = bullet.replace(/^(Problem|Fix|Impact|បញ្ហា|ការជួសជុល|ផលប៉ះពាល់):\s*/i, '');
+                                const prefix = isProb ? 'Problem' : isFix ? 'Fix' : isImp ? 'Impact' : null;
+                                return (
+                                  <div key={bi} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                                    <span style={{ color: dotColor, fontFamily: mono, fontSize: 10, fontWeight: 600, flexShrink: 0, marginTop: 3, minWidth: prefix ? 52 : 12 }}>
+                                      {prefix || '·'}
+                                    </span>
+                                    <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{prefix ? label : bullet}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                        return <p key={i} style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>;
+                      });
+                    })()}
                   </div>
                 )}
 
