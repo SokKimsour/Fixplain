@@ -150,7 +150,7 @@ async function callGroq(systemPrompt, userMessage) {
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage },
           ],
-          model: 'llama-3.3-70b-versatile',
+          model: 'deepseek-r1-distill-llama-70b',
           response_format: { type: 'json_object' },
           temperature: 0,
           max_tokens: 3000,
@@ -308,14 +308,37 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
     ? `\nIMPORTANT: This code was already processed and fixed by a previous AI analysis. It should be clean. Apply RULE 1 very strictly — only report genuine remaining bugs. If in doubt, do NOT report it. The expected result is bugsFound = [] and health = 100.`
     : '';
 
+  const langRules = {
+    javascript: `JAVASCRIPT-SPECIFIC: Watch for: == vs === (always use ===), missing await on async calls, var instead of const/let, unchecked null/undefined, callback missing error handling, string concatenation in queries.`,
+    nodejs: `NODE.JS-SPECIFIC: Watch for: missing await, unhandled promise rejections, no error middleware, synchronous blocking calls, missing input validation, SQL/NoSQL injection via string concatenation.`,
+    python: `PYTHON-SPECIFIC: Watch for: mutable default arguments (def f(x=[])), bare except clauses, == None instead of is None, integer division issues, missing error handling in file/network operations.`,
+    sql: `SQL-SPECIFIC: Watch for: string concatenation in queries (SQL injection), missing WHERE clause on UPDATE/DELETE, SELECT * in production, missing indexes on JOIN columns, unparameterized user input.`,
+    typescript: `TYPESCRIPT-SPECIFIC: Watch for: any type overuse, non-null assertions (!), missing type guards, implicit any, unhandled promise types, incorrect generic constraints.`,
+    java: `JAVA-SPECIFIC: Watch for: NullPointerException risks, unchecked exceptions, resource leaks (unclosed streams), == for string comparison instead of .equals(), raw types instead of generics.`,
+    csharp: `C#-SPECIFIC: Watch for: null reference exceptions, using blocks for IDisposable, async void methods, missing cancellation tokens, string comparison with == vs .Equals().`,
+    php: `PHP-SPECIFIC: Watch for: SQL injection via string concatenation, missing input sanitization, loose comparison == vs ===, direct $_GET/$_POST usage without validation.`,
+    ruby: `RUBY-SPECIFIC: Watch for: missing nil checks, unsafe eval usage, SQL injection in ActiveRecord raw queries, mass assignment without strong parameters.`,
+    go: `GO-SPECIFIC: Watch for: ignored error returns, nil pointer dereferences, goroutine leaks, race conditions, unclosed response bodies.`,
+    rust: `RUST-SPECIFIC: Watch for: unwrap() on Option/Result without handling, unsafe blocks, integer overflow in debug vs release, lifetime issues.`,
+    swift: `SWIFT-SPECIFIC: Watch for: force unwrapping optionals (!), retain cycles in closures, missing weak/unowned references, incorrect error handling.`,
+  }[language] || '';
+
   const systemPrompt = `Act as a world-class ${language} software engineer performing a professional code review.
 ${modeInstruction}
+${langRules}
 ${localeInstruction}
 ${previousBugsInstruction}
 ${alreadyFixedInstruction}
 
 OUTPUT FORMAT — THIS IS CRITICAL:
 You must respond with ONLY a valid JSON object. No preamble. No explanation before or after. No markdown fences. No code blocks. No "Here is..." text. Start your response with { and end with }. Nothing else.
+
+THINK FIRST: Before writing your JSON response, silently reason through:
+  1. What does this code do overall?
+  2. What can go wrong at runtime?
+  3. Are there security vulnerabilities?
+  4. What is the cleanest fix?
+  Then write your JSON — do NOT include your thinking in the output.
 
 STRICT RULES — read carefully before responding:
 
