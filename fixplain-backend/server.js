@@ -153,7 +153,7 @@ async function callGroq(systemPrompt, userMessage) {
           model: 'llama-3.3-70b-versatile',
           response_format: { type: 'json_object' },
           temperature: 0,
-          max_tokens: 2048,
+          max_tokens: 3000,
         }),
         PROVIDER_TIMEOUT_MS,
         `Groq key ${i + 1}`
@@ -188,7 +188,7 @@ async function callCerebras(systemPrompt, userMessage) {
       ],
       response_format: { type: 'json_object' },
       temperature: 0,
-      max_tokens: 2048,
+      max_tokens: 3000,
     }),
   });
 
@@ -359,7 +359,17 @@ Respond ONLY in strict JSON with exactly these five keys:
     - "confidence": (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
 - "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
-- "explanation": plain-language explanation referencing specific line numbers for each change. If code was already clean say so clearly. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
+- "explanation": a detailed, beginner-friendly explanation written like a senior developer teaching a junior. Structure it as follows:
+    1. Start with one sentence summarizing what the overall code does.
+    2. For EACH bug or change, write a separate paragraph that includes:
+       - "Line X:" at the start
+       - What the original code was doing wrong and WHY it is a problem
+       - What the fix does and WHY it is the correct solution
+       - A real-world consequence if the bug was left unfixed (e.g. "This allows an attacker to delete your entire database")
+    3. End with one sentence about what the developer should remember going forward.
+    Use simple language. Avoid jargon. Write as if explaining to someone who is learning to code.
+    If code was already clean, explain what the code does well and why it is correct.
+    ${locale === 'km' ? 'Write entirely in Khmer (ភាសាខ្មែរ).' : ''}
 - "improvementSuggestions": array of exactly 3 objects, each with:
     - "tip": the actionable suggestion text. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
     - "youtubeQuery": a short English search query (4-6 words) for a YouTube tutorial. Always English. Example: "javascript async await explained", "python error handling best practices".
