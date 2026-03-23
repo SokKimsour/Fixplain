@@ -151,7 +151,6 @@ async function callGroq(systemPrompt, userMessage) {
             { role: 'user', content: userMessage },
           ],
           model: 'deepseek-r1-distill-llama-70b',
-          response_format: { type: 'json_object' },
           temperature: 0,
           max_tokens: 3000,
         }),
@@ -518,4 +517,3 @@ app.listen(PORT, () => {
   console.log(`Fixplain backend live on port ${PORT}`);
   console.log(`Providers: Groq=${groqClients.length} keys | Cerebras=${!!CEREBRAS_API_KEY} | Gemini=${!!process.env.GEMINI_API_KEY}`);
 });
-
