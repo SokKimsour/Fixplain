@@ -1,8 +1,0 @@
-<svg width="400" height="80" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="80" height="80" rx="18" fill="#0d2d29"/>
-  <path d="M22 16 C16 16 13 20 13 25 L13 32 C13 37 10 39 8 40 C10 41 13 43 13 48 L13 55 C13 60 16 64 22 64" stroke="#2dd4bf" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-  <path d="M58 16 C64 16 67 20 67 25 L67 32 C67 37 70 39 72 40 C70 41 67 43 67 48 L67 55 C67 60 64 64 58 64" stroke="#2dd4bf" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-  <polyline points="26,41 34,51 54,29" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="96" y="54" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="42" font-weight="700" fill="#2dd4bf">fix</text>
-  <text x="205" y="54" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="42" font-weight="400" fill="#c8cdd8">plain</text>
-</svg>
