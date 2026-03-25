@@ -79,7 +79,7 @@ const i18n = {
     ],
   },
   km: {
-    tagline: 'ជួសជុល។ ពន្យល់។ រៀនពីវា។',
+    tagline: 'ជួសជុល ពន្យល់ រៀនពីវា',
     subtitle: 'បិទភ្ជាប់កូដរបស់អ្នក — ទទួលបានការជួសជុល ការតម្រៀប និងការពន្យល់ភ្លាមៗ។',
     analyzeBtn: '⚡  វិភាគ និងជួសជុល', analyzingBtn: '◌  កំពុងវិភាគ...',
     reanalyzeBtn: '↺  វិភាគម្តងទៀត', clearBtn: 'លុប ✕', toAnalyze: 'ដើម្បីវិភាគ',
@@ -1131,6 +1131,13 @@ function AppInner() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
+  // Auto-reanalyze when locale changes — keeps explanation in the correct language
+  useEffect(() => {
+    if (!analysisResult || originalCode.length <= 10) return;
+    handleAnalyze();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]);
+
   // Keyboard tab navigation — left/right arrow keys when no input focused
   useEffect(() => {
     const fn = e => {
@@ -1815,7 +1822,7 @@ function AppInner() {
           </div>
         </div>
       )}
-<Toast message={toastMsg} visible={toastVisible} undoable={toastUndoable} c={c} />
+      <Toast message={toastMsg} visible={toastVisible} undoable={toastUndoable} c={c} />
     </div>
   );
 }
