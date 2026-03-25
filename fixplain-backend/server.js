@@ -293,11 +293,25 @@ app.post('/api/fix', rateLimiter, async (req, res) => {
         : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
 
   const localeInstruction = locale === 'km'
-    ? `IMPORTANT — KHMER LANGUAGE: Write ALL user-facing text in Khmer (ភាសាខ្មែរ). This includes:
-  - Every "issue" string in bugsFound (e.g. "SQL injection vulnerability" → "ភាពងាយរងគ្រោះ SQL injection")
-  - The "explanation" field
-  - Every item in "improvementSuggestions"
-  CRITICAL: Do NOT translate string literals, variable names, function names, or any actual code content inside fixedCode or commentedCode. Only JSDoc comment text above functions may be in Khmer. Code must remain valid and unchanged.`
+    ? `IMPORTANT — KHMER LANGUAGE OUTPUT RULES:
+
+RULE A — CODE PRESERVATION (ABSOLUTE):
+  Under NO circumstances should you translate variable names, function names, class names, method names, or any programming keywords into Khmer.
+  The code inside "fixedCode" and "commentedCode" must remain 100% in its original programming language.
+  Identifiers, operators, keywords (if, for, return, async, etc.), data string literals, and all structural code must be left completely untouched.
+  ONLY the descriptive lines inside JSDoc comment blocks (/** ... */) written above functions in "commentedCode" may be written in Khmer.
+
+RULE B — TARGETED TRANSLATION ONLY:
+  Translate ONLY these fields into Khmer (ភាសាខ្មែរ):
+  - Every "issue" string in "bugsFound" (e.g. "SQL injection vulnerability" → "ភាពងាយរងគ្រោះ SQL injection")
+  - The entire "explanation" field
+  - Every "tip" value in "improvementSuggestions"
+  Do NOT translate: "youtubeQuery", "mdnQuery", "severity", JSON keys, or any code inside "fixedCode"/"commentedCode".
+
+RULE C — CONSISTENCY (ALWAYS REFERENCE ENGLISH IDENTIFIERS):
+  Even when writing explanations and suggestions entirely in Khmer, you MUST still refer to the original English variable names, function names, and class names exactly as they appear in the code — wrapped in backticks.
+  Example: "អថេរ \`userCount\` មានបញ្ហា..." — keep the English identifier name inline inside the Khmer sentence.
+  This ensures developers can map every explanation directly back to the code they see without confusion.`
     : '';
 
   const previousBugsInstruction = Array.isArray(previousBugs) && previousBugs.length > 0

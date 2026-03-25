@@ -229,9 +229,10 @@ const normalizeBugs = bugs => !bugs?.length ? [] : bugs.map(b => typeof b === 's
 
 const computeHealthScore = bugs => {
   if (!bugs.length) return 100;
+  // Only high (−20) and medium (−8) reduce the score; low bugs are ignored per PRD
   const realBugs = bugs.filter(b => b.severity === 'high' || b.severity === 'medium');
   if (!realBugs.length) return 100;
-  const deductions = realBugs.reduce((sum, b) => sum + (b.severity === 'high' ? 25 : 12), 0);
+  const deductions = realBugs.reduce((sum, b) => sum + (b.severity === 'high' ? 20 : 8), 0);
   return Math.max(0, 100 - deductions);
 };
 
@@ -1203,7 +1204,8 @@ function AppInner() {
 
   const lineCount = codeInput.split('\n').length;
   const charCount = codeInput.length;
-  const healthScore = bugs.length > 0 || analysisResult ? computeHealthScore(bugs) : null;
+  // Hide score (null) while loading so no stale value is shown
+  const healthScore = isLoading ? null : (bugs.length > 0 || analysisResult ? computeHealthScore(bugs) : null);
 
   return (
     <div style={{ minHeight: '100vh', background: c.bgBase, color: c.text1, fontFamily: tf, display: 'flex', flexDirection: 'column', transition: 'background 0.2s, color 0.2s', overflowX: 'hidden', width: '100%' }}>
@@ -1368,8 +1370,14 @@ function AppInner() {
                   : t.analyzeBtn}
           </button>
 
-          {/* Health score */}
-          {healthScore !== null && <HealthRing score={healthScore} c={c} label={t.codeHealth} isMobile={isMobile} bugs={bugs} t={t} />}
+          {/* Health score — show spinner while loading, ring when done */}
+          {isLoading && originalCode.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: c.bgSurface, borderRadius: 12, border: `1px solid ${c.borderSoft}` }}>
+              {[0,1,2].map(i => <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: c.teal, display: 'inline-block', animation: `fpShimmer 1.2s ease-in-out ${i * 0.15}s infinite` }} />)}
+              <span style={{ fontFamily: mono, fontSize: 11, color: c.teal }}>{locale === 'km' ? 'កំពុងគណនា...' : 'Calculating...'}</span>
+            </div>
+          )}
+          {!isLoading && healthScore !== null && <HealthRing score={healthScore} c={c} label={t.codeHealth} isMobile={isMobile} bugs={bugs} t={t} />}
 
           {/* History */}
           {history.length > 0 && (
