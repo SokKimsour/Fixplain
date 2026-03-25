@@ -2,6 +2,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, oneLight, dracula, atomDark, nord } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useState, useEffect, useCallback, useRef, Component } from 'react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import AnimatedBackground from './AnimatedBackground';
 
 // ── i18n ──────────────────────────────────────────────────────────────────────
@@ -151,7 +152,7 @@ const i18n = {
 };
 
 // ── Themes ────────────────────────────────────────────────────────────────────
-const darkTheme = { bgBase: '#0d0f12', bgPanel: '#13161b', bgSurface: '#1a1e26', border: '#2a2f3d', borderSoft: '#1e2330', teal: '#2dd4bf', tealDim: '#1a8a7c', tealGlow: 'rgba(45,212,191,0.12)', red: '#f87171', redGlow: 'rgba(248,113,113,0.08)', green: '#4ade80', amber: '#f59e0b', blue: '#60a5fa', purple: '#a78bfa', text1: '#f0f2f8', text2: '#c4c9d8', text3: '#8b92a8', navBg: 'rgba(13,15,18,0.9)', codeTheme: vscDarkPlus, codeBg: '#1a1e26', lineNumBg: '#13161b', lineNumColor: '#8b92a8', isDark: true };
+const darkTheme = { bgBase: '#1e1e1e', bgPanel: '#252526', bgSurface: '#2d2d2d', border: '#333333', borderSoft: '#2a2a2a', teal: '#2dd4bf', tealDim: '#1a8a7c', tealGlow: 'rgba(45,212,191,0.12)', red: '#f87171', redGlow: 'rgba(248,113,113,0.08)', green: '#4ade80', amber: '#fbbf24', blue: '#60a5fa', purple: '#a78bfa', text1: '#f0f2f8', text2: '#c4c9d8', text3: '#8b92a8', navBg: 'rgba(30,30,30,0.92)', codeTheme: vscDarkPlus, codeBg: '#1e1e1e', lineNumBg: '#252526', lineNumColor: '#8b92a8', isDark: true };
 const lightTheme = {
   bgBase: '#eef1f7',
   bgPanel: '#ffffff',
@@ -185,10 +186,12 @@ const LANGUAGES = [
   { value: 'java', label: 'Java' }, { value: 'php', label: 'PHP' },
   { value: 'ruby', label: 'Ruby' }, { value: 'go', label: 'Go' },
   { value: 'rust', label: 'Rust' }, { value: 'swift', label: 'Swift' },
+  { value: 'cpp', label: 'C++' }, { value: 'kotlin', label: 'Kotlin' },
+  { value: 'bash', label: 'Bash/Shell' }
 ];
 const MODES = ['both', 'fix', 'refactor'];
 const TAB_KEYS = ['bugs', 'fixed', 'commented', 'explain', 'suggest'];
-const EXT_MAP = { js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', py: 'python', cs: 'csharp', sql: 'sql', java: 'java', php: 'php', rb: 'ruby', go: 'go', rs: 'rust', swift: 'swift' };
+const EXT_MAP = { js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', py: 'python', cs: 'csharp', sql: 'sql', java: 'java', php: 'php', rb: 'ruby', go: 'go', rs: 'rust', swift: 'swift', cpp: 'cpp', kt: 'kotlin', sh: 'bash' };
 
 // Syntax highlight themes — dark and light options
 const THEMES = {
@@ -212,9 +215,9 @@ const LANG_HINTS = [
   { lang: 'javascript', patterns: [/const\s+\w+\s*=/, /let\s+\w+\s*=/, /var\s+\w+\s*=/, /=>\s*\{/, /function\s+\w+\s*\(/, /console\.(log|error|warn)\s*\(/, /document\.|window\.|addEventListener/] },
 ];
 const SEVERITY_STYLE = {
-  high: { dark: { bg: 'rgba(248,113,113,0.12)', color: '#f87171' }, light: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' } },
-  medium: { dark: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' }, light: { bg: 'rgba(217,119,6,0.1)', color: '#d97706' } },
-  low: { dark: { bg: 'rgba(96,165,250,0.12)', color: '#60a5fa' }, light: { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' } },
+  high: { dark: { bg: '#450a0a', color: '#f87171' }, light: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' } },
+  medium: { dark: { bg: '#422006', color: '#fbbf24' }, light: { bg: 'rgba(217,119,6,0.1)', color: '#d97706' } },
+  low: { dark: { bg: '#172554', color: '#60a5fa' }, light: { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' } },
 };
 
 const mono = "'JetBrains Mono', monospace";
@@ -369,136 +372,40 @@ async function decodeShare(hash) {
   } catch { return null; }
 }
 
-function exportToPDF(analysisResult, language, mode, locale = 'en') {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const W = 210, M = 15, CW = W - M * 2; let y = M;
-  const bugs = normalizeBugs(analysisResult.bugsFound);
-  const score = computeHealthScore(bugs);
-  const isKm = locale === 'km';
+const handleExport = async () => {
+  const element = document.getElementById('hidden-pdf-document');
+  if (!element) return;
 
-  // ── Render Khmer text via canvas (browser uses loaded Hanuman font) ──────────
-  // jsPDF's built-in fonts are Latin-only — Khmer chars become boxes.
-  // Solution: draw Khmer text onto an offscreen canvas and embed as image.
-  const addKhmerText = (text, size = 11, color = [30, 30, 30]) => {
-    if (!text) return;
-    const lines = String(text).split('\n');
-    const SCALE = 3;
-    const pxSize = size * 1.0 * SCALE;
-    const lineH = pxSize * 2.0;   // extra tall — Khmer has vowels above/below
-    const canvasW = Math.round(CW * 3.78 * SCALE);
+  try {
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
 
-    lines.forEach(line => {
-      const canvas = document.createElement('canvas');
-      canvas.width = canvasW;
-      const ctx = canvas.getContext('2d');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      ctx.font = `${Math.round(pxSize)}px 'Hanuman', 'Noto Sans Khmer', sans-serif`;
-      ctx.textBaseline = 'top';
+    const margin = 10;
+    const maxW = pdfWidth - margin * 2;
+    const maxH = pdfHeight - margin * 2;
 
-      // Word-wrap
-      const words = line.split(' ');
-      let currentLine = '';
-      const wrappedLines = [];
-      words.forEach(word => {
-        const test = currentLine ? `${currentLine} ${word}` : word;
-        if (ctx.measureText(test).width > canvasW - 16) {
-          if (currentLine) wrappedLines.push(currentLine);
-          currentLine = word;
-        } else { currentLine = test; }
-      });
-      if (currentLine) wrappedLines.push(currentLine);
+    const ratio = canvas.width / canvas.height;
+    let imgW = maxW;
+    let imgH = maxW / ratio;
 
-      // Extra padding top + bottom so tall Khmer glyphs don't clip
-      const PAD = pxSize * 0.5;
-      canvas.height = Math.ceil(wrappedLines.length * lineH + PAD * 2) || Math.ceil(lineH + PAD * 2);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = `rgb(${color.join(',')})`;
-      ctx.font = `${Math.round(pxSize)}px 'Hanuman', 'Noto Sans Khmer', sans-serif`;
-      ctx.textBaseline = 'top';
-      wrappedLines.forEach((wl, i) => ctx.fillText(wl, 0, PAD + i * lineH));
-
-      const imgH = canvas.height / 3.78 / SCALE;
-      if (y + imgH > 280) { doc.addPage(); y = M; }
-      doc.addImage(canvas.toDataURL('image/png'), 'PNG', M, y, CW, imgH);
-      y += imgH + 1;
-    });
-  };
-
-  const addText = (text, size = 11, bold = false, color = [30, 30, 30]) => {
-    // Route Khmer text to canvas renderer, Latin text to normal jsPDF
-    if (isKm && /[\u1780-\u17FF]/.test(String(text || ''))) {
-      addKhmerText(text, size, color);
-      return;
+    if (imgH > maxH) {
+      imgH = maxH;
+      imgW = maxH * ratio;
     }
-    doc.setFontSize(size); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setTextColor(...color);
-    const lines = doc.splitTextToSize(String(text || ''), CW);
-    if (y + lines.length * (size * 0.45) > 280) { doc.addPage(); y = M; }
-    doc.text(lines, M, y); y += lines.length * (size * 0.45) + 2;
-  };
 
-  const addSection = (title, color = [13, 148, 136]) => {
-    y += 4; doc.setDrawColor(...color); doc.setLineWidth(0.5); doc.line(M, y, W - M, y); y += 5;
-    // Section titles are always English labels
-    doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(...color);
-    const lines = doc.splitTextToSize(String(title || ''), CW);
-    if (y + lines.length * (13 * 0.45) > 280) { doc.addPage(); y = M; }
-    doc.text(lines, M, y); y += lines.length * (13 * 0.45) + 2;
-  };
+    const x = (pdfWidth - imgW) / 2;
+    const y = margin;
 
-  const addCode = (code) => {
-    const codeStr = String(code || '');
-    const lines = codeStr.split('\n');
-    const blockH = lines.length * 3.8 + 4;
-    if (y + blockH > 280) { doc.addPage(); y = M; }
-    doc.setFillColor(245, 246, 248); doc.roundedRect(M, y, CW, blockH, 2, 2, 'F');
-    y += 3;
-    lines.forEach(line => {
-      if (isKm && /[\u1780-\u17FF]/.test(line)) {
-        addKhmerText(line, 8, [60, 60, 60]);
-      } else {
-        doc.setFontSize(8.5); doc.setFont('courier', 'normal'); doc.setTextColor(60, 60, 60);
-        const wrapped = doc.splitTextToSize(line, CW - 4);
-        if (y + wrapped.length * 3.8 > 280) { doc.addPage(); y = M; }
-        doc.text(wrapped, M + 2, y);
-        y += wrapped.length * 3.8;
-      }
-    });
-    y += 4;
-  };
-
-  // Header
-  doc.setFillColor(13, 148, 136); doc.rect(0, 0, W, 22, 'F');
-  doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
-  doc.text('fixplain', M, 14);
-  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-  doc.text('Fix it. Explain it. Learn from it.', M + 28, 14);
-  doc.setTextColor(200, 240, 235);
-  doc.text(`${language.toUpperCase()} · ${mode} · Health: ${score}/100 · ${new Date().toLocaleDateString()}`, W - M, 14, { align: 'right' });
-  y = 30;
-
-  addSection('Code Health Score');
-  const scoreColor = score >= 80 ? [22, 163, 74] : score >= 50 ? [217, 119, 6] : [239, 68, 68];
-  addText(`${score} / 100`, 20, true, scoreColor);
-  addSection('Bugs Found');
-  if (!bugs.length) { addText('No bugs detected.', 10, false, [22, 163, 74]); }
-  else bugs.forEach((b, i) => {
-    const sc = b.severity === 'high' ? [239, 68, 68] : b.severity === 'medium' ? [217, 119, 6] : [37, 99, 235];
-    addText(`${i + 1}. [${(b.severity || 'medium').toUpperCase()}]${b.lineNumber ? ` Line ${b.lineNumber}` : ''} — ${b.issue}`, 10, false, sc);
-  });
-  addSection('Fixed Code'); addCode(analysisResult.fixedCode);
-  if (analysisResult.commentedCode) { addSection('Commented Code'); addCode(analysisResult.commentedCode); }
-  addSection('Explanation'); addText(analysisResult.explanation, 10);
-  addSection('Improvement Suggestions');
-  (analysisResult.improvementSuggestions || []).forEach((s, i) => {
-    const tip = typeof s === 'string' ? s : s?.tip;
-    addText(`${i + 1}. ${tip}`, 10);
-  });
-
-  const pc = doc.internal.getNumberOfPages();
-  for (let p = 1; p <= pc; p++) { doc.setPage(p); doc.setFontSize(8); doc.setTextColor(150, 150, 150); doc.text(`Fixplain · Page ${p} of ${pc}`, W / 2, 292, { align: 'center' }); }
-  doc.save(`fixplain-${language}-${Date.now()}.pdf`);
-}
+    pdf.addImage(imgData, 'PNG', x, y, imgW, imgH);
+    pdf.save('Fixplain-Analysis.pdf');
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+  }
+};
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 const Panel = ({ c, children, style = {}, ...rest }) => (
@@ -1393,7 +1300,7 @@ function AppInner() {
                 {locale === 'km' ? 'ភាសា:' : 'Language:'}
               </span>
               <select value={language} onChange={e => setLanguage(e.target.value)}
-                style={{ flex: 1, background: c.bgPanel, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 12, padding: '5px 8px', cursor: 'pointer', outline: 'none', transition: '0.15s' }}
+                style={{ width: '120px', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: c.bgPanel, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 12, padding: '5px 8px', cursor: 'pointer', outline: 'none', transition: '0.15s' }}
                 onFocus={e => e.currentTarget.style.borderColor = c.tealDim}
                 onBlur={e => e.currentTarget.style.borderColor = c.border}>
                 {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
@@ -1446,7 +1353,7 @@ function AppInner() {
           </Panel>
 
           <button data-tour="analyze" onClick={handleAnalyze} disabled={isLoading || !codeInput.trim() || cooldown > 0}
-            style={{ fontFamily: tf, fontSize: isMobile ? 13 : 15, fontWeight: 600, padding: '14px 0', borderRadius: 30, border: `1.5px solid ${c.tealDim}`, background: isLoading ? 'transparent' : c.tealGlow, color: c.teal, cursor: (isLoading || !codeInput.trim() || cooldown > 0) ? 'not-allowed' : 'pointer', letterSpacing: '0.4px', transition: 'all 0.2s', opacity: (!codeInput.trim() && !isLoading) ? 0.4 : 1, width: '100%', animation: isLoading ? 'fpShimmer 1.5s ease-in-out infinite' : 'none' }}>
+            style={{ fontFamily: tf, fontSize: isMobile ? 13 : 15, fontWeight: 600, padding: '14px 0', borderRadius: 30, border: `1.5px solid ${isDark ? '#4338ca' : c.tealDim}`, background: isLoading ? 'transparent' : (isDark ? '#4f46e5' : c.tealGlow), color: isDark ? '#ffffff' : c.teal, cursor: (isLoading || !codeInput.trim() || cooldown > 0) ? 'not-allowed' : 'pointer', letterSpacing: '0.4px', transition: 'all 0.2s', opacity: (!codeInput.trim() && !isLoading) ? 0.4 : 1, width: '100%', animation: isLoading ? 'fpShimmer 1.5s ease-in-out infinite' : 'none' }}>
             {isLoading
               ? (isWarmingUp ? t.warmingUp : t.analyzingBtn)
               : cooldown > 0 ? `${t.readyIn} ${cooldown}s`
@@ -1514,7 +1421,7 @@ function AppInner() {
         </div>
 
         {/* RIGHT */}
-        <Panel c={c} data-tour="results" style={{ minHeight: isMobile ? 400 : 380, minWidth: 0, width: '100%' }}>
+        <Panel id="pdf-export-content" c={c} data-tour="results" style={{ minHeight: isMobile ? 400 : 380, minWidth: 0, width: '100%' }}>
           <div style={{ display: 'flex', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface, overflowX: 'auto', scrollbarWidth: 'none' }}>
             {TAB_KEYS.map(key => {
               const accent = tabAccent[key], isActive = activeTab === key;
@@ -1818,7 +1725,7 @@ function AppInner() {
 
                 {/* Bottom actions */}
                 <div data-tour="actions" style={{ marginTop: 20, paddingTop: 14, borderTop: `1px solid ${c.borderSoft}`, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button onClick={() => exportToPDF(analysisResult, language, mode, locale)}
+                  <button onClick={handleExport}
                     style={{ fontFamily: tf, fontSize: 11, padding: '7px 16px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = c.red; e.currentTarget.style.color = c.red; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
@@ -1844,7 +1751,71 @@ function AppInner() {
         {t.connected} &nbsp;·&nbsp; {LANGUAGES.find(l => l.value === language)?.label} &nbsp;·&nbsp; {t.modes[mode]}
       </div>
 
-      <Toast message={toastMsg} visible={toastVisible} undoable={toastUndoable} c={c} />
+
+      {analysisResult && (
+        <div id="hidden-pdf-document" style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: '794px', backgroundColor: '#ffffff', color: '#334155', padding: '40px 48px', fontFamily: 'Inter, system-ui, sans-serif', lineHeight: 1.6 }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '2px solid #e2e8f0', paddingBottom: '16px', marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e293b', letterSpacing: '-0.5px', margin: 0 }}>Fixplain Analysis Report</h1>
+            <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'right' }}>
+              <div>{new Date().toLocaleString()}</div>
+              <div>Language: {LANGUAGES.find(l => l.value === language)?.label || language}</div>
+            </div>
+          </div>
+
+          {/* Bugs Section */}
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a', marginTop: '24px', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bugs Found</h2>
+          <div>
+            {normalizeBugs(analysisResult.bugsFound).length === 0 ? (
+              <p style={{ fontSize: '15px' }}>No bugs detected.</p>
+            ) : normalizeBugs(analysisResult.bugsFound).map((b, i) => {
+              const bg = b.severity === 'high' ? '#fef2f2' : b.severity === 'medium' ? '#fffbeb' : '#f0fdf4';
+              const borderCol = b.severity === 'high' ? '#ef4444' : b.severity === 'medium' ? '#f59e0b' : '#3b82f6';
+              return (
+                <div key={i} style={{ backgroundColor: bg, borderLeft: `4px solid ${borderCol}`, borderTop: '1px solid #f8fafc', borderRight: '1px solid #f8fafc', borderBottom: '1px solid #f8fafc', borderRadius: '4px', padding: '12px 16px', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '15px', lineHeight: '1.4', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ backgroundColor: borderCol, color: '#ffffff', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' }}>{(b.severity || 'MEDIUM').toUpperCase()}</span>
+                    {b.lineNumber && <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>Line {b.lineNumber}</span>}
+                  </div>
+                  <div style={{ color: '#0f172a' }}>{b.issue}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Explanation Section */}
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a', marginTop: '32px', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Explanation & Suggestions</h2>
+          <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '6px', color: '#334155', border: '1px solid #e2e8f0', fontSize: '15px', lineHeight: '1.6', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+            <div style={{ whiteSpace: 'pre-wrap', marginBottom: '16px' }}>
+              {(() => {
+                const expDetails = analysisResult.explanation || '';
+                return typeof expDetails === 'string' ? expDetails : (expDetails[locale] || expDetails.en || '');
+              })()}
+            </div>
+            <ul style={{ paddingLeft: 20, margin: 0 }}>
+              {(analysisResult.improvementSuggestions || []).map((s, i) => {
+                const tipData = typeof s === 'string' ? s : s?.tip;
+                const tip = typeof tipData === 'string' ? tipData : (tipData?.[locale] || tipData?.en || '');
+                return <li key={i} style={{ marginBottom: 8 }}>{tip}</li>;
+              })}
+            </ul>
+          </div>
+
+          {/* Fixed Code Section */}
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a', marginTop: '32px', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fixed Code</h2>
+          <div style={{ border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#f8fafc', overflow: 'hidden', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+            <SyntaxHighlighter language={langForHL} style={oneLight} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, padding: '16px', fontSize: '13px', backgroundColor: 'transparent', lineHeight: '1.5' }}>
+              {analysisResult.fixedCode || ''}
+            </SyntaxHighlighter>
+          </div>
+
+          {/* Footer */}
+          <div style={{ marginTop: '48px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', textAlign: 'center', fontSize: '12px', color: '#94a3b8' }}>
+            Generated automatically by Fixplain — fixplain.com
+          </div>
+        </div>
+      )}
+<Toast message={toastMsg} visible={toastVisible} undoable={toastUndoable} c={c} />
     </div>
   );
 }
