@@ -60,7 +60,7 @@ const i18n = {
         {
           icon: '↑',
           title: 'Share & export',
-          body: 'Use ⚡ Fix all to fix every bug at once. Export a PDF report or share results via a link.',
+          body: 'Use ↺ Apply fix to patch one bug at a time, or ⚡ Fix all for everything at once. Export a PDF report or share results via a link.',
         },
       ]
     },
@@ -201,6 +201,7 @@ const LANG_HINTS = [
   { lang: 'python', patterns: [/^def\s+\w+\(/m, /^import\s+\w/m, /^from\s+\w+\s+import/m, /:\s*$\n\s+/m] },
   { lang: 'typescript', patterns: [/:\s*(string|number|boolean|any|void)\b/, /interface\s+\w+\s*\{/, /=>\s*\w+\s*:/, /<\w+>/] },
   { lang: 'sql', patterns: [/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/im] },
+  { lang: 'nodejs', patterns: [/require\s*\(\s*['"]express['"]/, /require\s*\(\s*['"]fs['"]/, /require\s*\(\s*['"]path['"]/, /app\.(get|post|put|delete|use)\s*\(/, /module\.exports\s*=/, /process\.env\b/] },
   { lang: 'java', patterns: [/public\s+(class|static|void)\b/, /System\.out\.print/] },
   { lang: 'csharp', patterns: [/using\s+System[;.]/, /Console\.Write/, /namespace\s+\w+/] },
   { lang: 'ruby', patterns: [/^def\s+\w+/m, /\.each\s+do\s*\|/, /require\s+['"]/, /puts\s+/] },
@@ -208,6 +209,7 @@ const LANG_HINTS = [
   { lang: 'rust', patterns: [/^fn\s+\w+/m, /let\s+mut\s+/, /println!\(/, /use\s+std::/] },
   { lang: 'swift', patterns: [/^func\s+\w+/m, /var\s+\w+:\s*\w+/, /print\(/, /import\s+Foundation/] },
   { lang: 'php', patterns: [/^<\?php/m, /\$\w+\s*=/, /echo\s+/, /->/] },
+  { lang: 'javascript', patterns: [/const\s+\w+\s*=/, /let\s+\w+\s*=/, /var\s+\w+\s*=/, /=>\s*\{/, /function\s+\w+\s*\(/, /console\.(log|error|warn)\s*\(/, /document\.|window\.|addEventListener/] },
 ];
 const SEVERITY_STYLE = {
   high: { dark: { bg: 'rgba(248,113,113,0.12)', color: '#f87171' }, light: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' } },
@@ -1017,6 +1019,7 @@ function AppInner() {
   const [progressStep, setProgressStep] = useState(0);
   const [cooldown, setCooldown] = useState(0);
   const [highlightLine, setHighlightLine] = useState(null);
+  const [fixingBug, setFixingBug] = useState(null);
   const [showTour, setShowTour] = useState(false);
   const [isWarmingUp, setIsWarmingUp] = useState(false);
   const [originalCode, setOriginalCode] = useState('');
@@ -1184,9 +1187,7 @@ function AppInner() {
           language: effectiveLang,
           mode,
           locale,
-          previousBugs: (wasLoadedFromFix && analysisResult)
-            ? normalizeBugs(analysisResult.bugsFound).map(b => b.issue)
-            : [],
+          previousBugs: analysisResult ? normalizeBugs(analysisResult.bugsFound).map(b => b.issue) : [],
           wasAlreadyFixed: wasFixed,
         }),
       });
@@ -1246,7 +1247,24 @@ function AppInner() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-
+  const handleFixSingle = async (bug, idx) => {
+    setFixingBug(idx);
+    try {
+      const res = await fetch('https://ffxplain-api.onrender.com/api/fix-single', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codeInput, bugIssue: bug.issue, language }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (data.fixedCode) {
+        const formatted = formatCode(data.fixedCode, language);
+        const prev = codeInput;
+        setCodeInput(formatted);
+        showUndoToast(locale === 'km' ? 'បានជួសជុល ✓ · ប្តូរត្រឡប់?' : t.applyFix + ' ✓ · Undo?', () => setCodeInput(prev));
+      }
+    } catch { showToast(locale === 'km' ? 'ជួសជុលបរាជ័យ' : 'Fix failed'); }
+    finally { setFixingBug(null); }
+  };
 
   // Fix all bugs at once — loads fixedCode into editor with undo
   const handleFixAll = () => {
@@ -1303,9 +1321,6 @@ function AppInner() {
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflow: 'hidden' }}>
-          <select value={language} onChange={e => setLanguage(e.target.value)} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 12, padding: '6px 6px', cursor: 'pointer', outline: 'none', maxWidth: isMobile ? 90 : 'none' }}>
-            {LANGUAGES.map(l => <option key={l.value} value={l.value}>{isMobile ? l.label.substring(0, 4) : l.label}</option>)}
-          </select>
           {!isMobile && <span style={{ fontSize: 10, fontFamily: mono, color: c.text3, display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <kbd style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 4, padding: '1px 5px', fontSize: 10, color: c.text3 }}>{navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}</kbd>
             <kbd style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 4, padding: '1px 5px', fontSize: 10, color: c.text3 }}>Enter</kbd>
@@ -1371,6 +1386,22 @@ function AppInner() {
                 showUndoToast(locale === 'km' ? 'បានលុបកូដ · ប្តូរត្រឡប់?' : 'Code cleared · Undo?', () => setCodeInput(prev));
               }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontSize: 11, fontFamily: mono, padding: '2px 6px', borderRadius: 5, flexShrink: 0 }}
                 onMouseEnter={e => e.target.style.color = c.text1} onMouseLeave={e => e.target.style.color = c.text3}>{t.clearBtn}</button>
+            </div>
+            {/* Language selector row — below clear, easy to see and select */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
+              <span style={{ fontFamily: mono, fontSize: 10, color: c.text3, flexShrink: 0 }}>
+                {locale === 'km' ? 'ភាសា:' : 'Language:'}
+              </span>
+              <select value={language} onChange={e => setLanguage(e.target.value)}
+                style={{ flex: 1, background: c.bgPanel, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 12, padding: '5px 8px', cursor: 'pointer', outline: 'none', transition: '0.15s' }}
+                onFocus={e => e.currentTarget.style.borderColor = c.tealDim}
+                onBlur={e => e.currentTarget.style.borderColor = c.border}>
+                {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+              </select>
+              {/* Auto-detected badge — shows when language was auto-switched */}
+              <span style={{ fontFamily: mono, fontSize: 9, color: c.teal, background: c.tealGlow, padding: '2px 7px', borderRadius: 20, flexShrink: 0, opacity: 0.85 }}>
+                {locale === 'km' ? 'ស្វ័យប្រវត្តិ' : 'auto'}
+              </span>
             </div>
             {/* Mode buttons row */}
             <div data-tour="modes" style={{ display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
@@ -1572,6 +1603,12 @@ function AppInner() {
                                   {b.confidence}% {t.confidenceLabel}
                                 </span>
                               )}
+                              <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
+                                style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
+                                onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
+                                {fixingBug === i ? t.applying : t.applyFix}
+                              </button>
                             </div>
                           </div>
                         ))}
