@@ -1084,7 +1084,7 @@ function AppInner() {
     }
 
     const API = 'https://ffxplain-api.onrender.com';
-    const warmupTimer = setTimeout(() => setIsWarmingUp(true), 3000);
+    const warmupTimer = setTimeout(() => setIsWarmingUp(true), 5000);
 
     try {
       const res = await fetch(`${API}/api/fix`, {
@@ -1525,12 +1525,7 @@ function AppInner() {
                                   {b.confidence}% {t.confidenceLabel}
                                 </span>
                               )}
-                              <button onClick={() => handleFixSingle(b, i)} disabled={fixingBug !== null}
-                                style={{ fontFamily: mono, fontSize: 9, padding: '2px 10px', borderRadius: 10, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: fixingBug !== null ? 'not-allowed' : 'pointer', transition: '0.15s', opacity: fixingBug !== null && fixingBug !== i ? 0.4 : 1 }}
-                                onMouseEnter={e => { if (fixingBug === null) { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; } }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
-                                {fixingBug === i ? t.applying : t.applyFix}
-                              </button>
+
                             </div>
                           </div>
                         ))}
