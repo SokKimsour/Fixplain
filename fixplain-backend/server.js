@@ -505,7 +505,7 @@ app.post('/api/translate-text', rateLimiter, async (req, res) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
-        model: 'llama3-8b-8192',
+        model: 'llama-3.1-8b-instant',
         response_format: { type: 'json_object' },
         temperature: 0,
         max_tokens: 2000,

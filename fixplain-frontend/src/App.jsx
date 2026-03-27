@@ -1117,7 +1117,7 @@ function AppInner() {
       setIsLoading(false);
       setIsWarmingUp(false);
     }
-  }, [codeInput, language, mode, locale, history, t, analysisResult, wasLoadedFromFix]);
+  }, [codeInput, language, mode, history, t, analysisResult, wasLoadedFromFix]);
 
   // Keyboard shortcut — handleAnalyze is defined above so no ReferenceError
   useEffect(() => {
