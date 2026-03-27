@@ -422,13 +422,13 @@ const PanelHeader = ({ c, children }) => (
 const Dot = ({ color }) => <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block' }} />;
 const SeverityBadge = ({ severity, isDark, label }) => {
   const st = (SEVERITY_STYLE[severity] || SEVERITY_STYLE.low)[isDark ? 'dark' : 'light'];
-  return <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: st.bg, color: st.color, letterSpacing: '0.5px', textTransform: 'uppercase', flexShrink: 0 }}>{label}</span>;
+  return <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: st.bg, color: st.color, letterSpacing: '0.5px', textTransform: 'uppercase', flexShrink: 0 }}>{label}</span>;
 };
 
 // ── Shared action buttons (defined outside App to avoid remount on each render) ─
 const CopyBtn = ({ c, onClick }) => (
   <button onClick={onClick}
-    style={{ fontFamily: mono, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
+    style={{ fontFamily: mono, fontSize: 12, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
     onMouseEnter={e => { e.currentTarget.style.borderColor = c.green; e.currentTarget.style.color = c.green; }}
     onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
     copy
@@ -437,7 +437,7 @@ const CopyBtn = ({ c, onClick }) => (
 
 const UseCodeBtn = ({ c, onClick }) => (
   <button onClick={onClick}
-    style={{ fontFamily: mono, fontSize: 10, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
+    style={{ fontFamily: mono, fontSize: 12, padding: '4px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
     onMouseEnter={e => { e.currentTarget.style.borderColor = c.teal; e.currentTarget.style.color = c.teal; }}
     onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
     ← use
@@ -544,13 +544,13 @@ function OnboardingTour({ c, t, onDone }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: mono, fontSize: 20, color: c.teal, lineHeight: 1 }}>{steps[step].icon}</span>
-            <span style={{ fontFamily: mono, fontSize: 11, color: c.teal, background: c.tealGlow, padding: '2px 8px', borderRadius: 20 }}>
+            <span style={{ fontFamily: mono, fontSize: 22, color: c.teal, lineHeight: 1 }}>{steps[step].icon}</span>
+            <span style={{ fontFamily: mono, fontSize: 13, color: c.teal, background: c.tealGlow, padding: '2px 8px', borderRadius: 20 }}>
               {step + 1} / {steps.length}
             </span>
           </div>
           <button onClick={onDone}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontFamily: mono, fontSize: 11, padding: '2px 6px', borderRadius: 6 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontFamily: mono, fontSize: 13, padding: '2px 6px', borderRadius: 6 }}
             onMouseEnter={e => e.currentTarget.style.color = c.text1}
             onMouseLeave={e => e.currentTarget.style.color = c.text3}>
             {t.tour.skip}
@@ -558,12 +558,12 @@ function OnboardingTour({ c, t, onDone }) {
         </div>
 
         {/* Title */}
-        <p style={{ fontFamily: sans, fontSize: 15, fontWeight: 600, color: c.text1, margin: '0 0 8px' }}>
+        <p style={{ fontFamily: sans, fontSize: 17, fontWeight: 600, color: c.text1, margin: '0 0 8px' }}>
           {steps[step].title}
         </p>
 
         {/* Body */}
-        <p style={{ fontFamily: sans, fontSize: 13, color: c.text2, lineHeight: 1.7, margin: '0 0 16px' }}>
+        <p style={{ fontFamily: sans, fontSize: 15, color: c.text2, lineHeight: 1.7, margin: '0 0 16px' }}>
           {steps[step].body}
         </p>
 
@@ -583,14 +583,14 @@ function OnboardingTour({ c, t, onDone }) {
           <div style={{ display: 'flex', gap: 6 }}>
             {!isFirst && (
               <button onClick={() => setStep(s => s - 1)}
-                style={{ fontFamily: mono, fontSize: 11, padding: '6px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.15s' }}
+                style={{ fontFamily: mono, fontSize: 13, padding: '6px 12px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.15s' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
                 {t.tour.back}
               </button>
             )}
             <button onClick={() => isLast ? onDone() : setStep(s => s + 1)}
-              style={{ fontFamily: mono, fontSize: 11, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: 'pointer', fontWeight: 600, transition: '0.15s' }}
+              style={{ fontFamily: mono, fontSize: 13, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: 'pointer', fontWeight: 600, transition: '0.15s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(45,212,191,0.2)'}
               onMouseLeave={e => e.currentTarget.style.background = c.tealGlow}>
               {isLast ? t.tour.done : t.tour.next}
@@ -621,18 +621,18 @@ function HealthRing({ score, c, label, isMobile, bugs, t }) {
           <text x={25} y={29} textAnchor="middle" fontFamily={mono} fontSize={11} fontWeight={600} fill={color}>{score}</text>
         </svg>
         <div>
-          <p style={{ fontFamily: mono, fontSize: 10, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>{label}</p>
-          <p style={{ fontFamily: mono, fontSize: 12, color, fontWeight: 600 }}>
+          <p style={{ fontFamily: mono, fontSize: 12, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>{label}</p>
+          <p style={{ fontFamily: mono, fontSize: 14, color, fontWeight: 600 }}>
             {score >= 80 ? t.healthy : score >= 50 ? t.needsWork : t.critical}
           </p>
         </div>
       </div>
       {deductions > 0 && (
         <div style={{ borderTop: `1px solid ${c.borderSoft}`, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <span style={{ fontFamily: mono, fontSize: 11, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.scoreBreakdown}</span>
-          {highBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 12, color: c.red }}>−{highBugs.length * 25} · {highBugs.length} high {highBugs.length === 1 ? 'bug' : 'bugs'} (×25)</span>}
-          {medBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 12, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
-          <span style={{ fontFamily: mono, fontSize: 12, color }}>= {score}/100</span>
+          <span style={{ fontFamily: mono, fontSize: 13, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.scoreBreakdown}</span>
+          {highBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 14, color: c.red }}>−{highBugs.length * 25} · {highBugs.length} high {highBugs.length === 1 ? 'bug' : 'bugs'} (×25)</span>}
+          {medBugs.length > 0 && <span style={{ fontFamily: mono, fontSize: 14, color: c.amber }}>−{medBugs.length * 12} · {medBugs.length} medium {medBugs.length === 1 ? 'bug' : 'bugs'} (×12)</span>}
+          <span style={{ fontFamily: mono, fontSize: 14, color }}>= {score}/100</span>
         </div>
       )}
     </div>
@@ -645,7 +645,7 @@ function LoadingSkeleton({ c, progressStep }) {
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
         {[0, 1, 2, 3, 4].map(i => <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: c.teal, display: 'inline-block', animation: `fpShimmer 1.2s ease-in-out ${i * 0.15}s infinite` }} />)}
-        <span style={{ fontFamily: mono, fontSize: 11, color: c.teal, marginLeft: 4 }}>{progressStep}</span>
+        <span style={{ fontFamily: mono, fontSize: 13, color: c.teal, marginLeft: 4 }}>{progressStep}</span>
       </div>
       {[[28, 88, 60], [35, 92, 72], [20, 78]].map((ws, gi) => (
         <div key={gi} style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -684,8 +684,8 @@ function DiffView({ original, fixed, c, screenW, isDark, t }) {
   if (added === 0 && removed === 0 && changed === 0) {
     return (
       <div style={{ borderRadius: 10, border: `1px solid ${c.borderSoft}`, padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, background: c.bgSurface }}>
-        <span style={{ fontSize: 24, color: c.green }}>✓</span>
-        <span style={{ fontFamily: mono, fontSize: 12, color: c.text2 }}>{t?.diffNoChanges || 'No changes — code already matches fixed version'}</span>
+        <span style={{ fontSize: 26, color: c.green }}>✓</span>
+        <span style={{ fontFamily: mono, fontSize: 14, color: c.text2 }}>{t?.diffNoChanges || 'No changes — code already matches fixed version'}</span>
       </div>
     );
   }
@@ -693,7 +693,7 @@ function DiffView({ original, fixed, c, screenW, isDark, t }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', borderRadius: 10, border: `1px solid ${c.borderSoft}`, overflow: 'hidden' }}>
       {/* Summary bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 14px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 14px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 12, flexWrap: 'wrap' }}>
         <span style={{ color: c.text3 }}>diff</span>
         {added > 0 && <span style={{ color: c.green }}>+{added} added</span>}
         {removed > 0 && <span style={{ color: c.red }}>−{removed} removed</span>}
@@ -709,14 +709,14 @@ function DiffView({ original, fixed, c, screenW, isDark, t }) {
 
       {/* Diff lines */}
       {isMobileView ? (
-        <div style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: 400, fontFamily: mono, fontSize: 12, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: 400, fontFamily: mono, fontSize: 14, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {rows.map((row, i) => {
             const s = typeStyle(row.type);
             const content = row.type === 'removed' ? row.orig : row.fixed;
             if (!content && row.type === 'same') return null;
             return (
               <div key={i} style={{ display: 'flex', background: s.bg, minHeight: 22, borderLeft: `2px solid ${row.type === 'same' ? 'transparent' : s.color}` }}>
-                <span style={{ color: s.numColor, minWidth: 18, padding: '0 6px', userSelect: 'none', lineHeight: '22px', flexShrink: 0, fontWeight: 600, fontSize: 10 }}>{s.symbol}</span>
+                <span style={{ color: s.numColor, minWidth: 18, padding: '0 6px', userSelect: 'none', lineHeight: '22px', flexShrink: 0, fontWeight: 600, fontSize: 12 }}>{s.symbol}</span>
                 <span style={{ color: s.color, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: '22px', flex: 1, padding: '0 8px 0 0' }}>{content}</span>
               </div>
             );
@@ -726,8 +726,8 @@ function DiffView({ original, fixed, c, screenW, isDark, t }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', maxHeight: 400, overflow: 'hidden' }}>
           {['orig', 'fixed'].map(side => (
             <div key={side} style={{ borderRight: side === 'orig' ? `1px solid ${c.borderSoft}` : 'none', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <div style={{ padding: '4px 12px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 10, color: side === 'orig' ? c.red : c.green, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 8 }}>●</span>
+              <div style={{ padding: '4px 12px', background: c.bgSurface, borderBottom: `1px solid ${c.borderSoft}`, fontFamily: mono, fontSize: 12, color: side === 'orig' ? c.red : c.green, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10 }}>●</span>
                 {side === 'orig' ? t.diffOriginal : t.diffFixed}
               </div>
               <div style={{ overflowY: 'auto', overflowX: 'auto', flex: 1, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -741,11 +741,11 @@ function DiffView({ original, fixed, c, screenW, isDark, t }) {
                   );
                   return (
                     <div key={i} style={{ display: 'flex', background: isEmpty ? (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') : s.bg, minHeight: 22, borderLeft: `2px solid ${row.type === 'same' || isEmpty ? 'transparent' : s.color}` }}>
-                      <span style={{ fontFamily: mono, fontSize: 10, color: isEmpty ? c.border : s.numColor, minWidth: 32, padding: '0 6px', userSelect: 'none', lineHeight: '22px', textAlign: 'right', flexShrink: 0 }}>
+                      <span style={{ fontFamily: mono, fontSize: 12, color: isEmpty ? c.border : s.numColor, minWidth: 32, padding: '0 6px', userSelect: 'none', lineHeight: '22px', textAlign: 'right', flexShrink: 0 }}>
                         {isEmpty ? '' : (lineNum ?? '')}
                       </span>
-                      <span style={{ fontFamily: mono, fontSize: 10, color: s.numColor, minWidth: 12, lineHeight: '22px', flexShrink: 0, opacity: isEmpty ? 0 : 1 }}>{row.type === 'same' ? ' ' : s.symbol}</span>
-                      <span style={{ fontFamily: mono, fontSize: 12, color: isEmpty ? 'transparent' : s.color, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: '22px', flex: 1, padding: '0 8px 0 2px' }}>
+                      <span style={{ fontFamily: mono, fontSize: 12, color: s.numColor, minWidth: 12, lineHeight: '22px', flexShrink: 0, opacity: isEmpty ? 0 : 1 }}>{row.type === 'same' ? ' ' : s.symbol}</span>
+                      <span style={{ fontFamily: mono, fontSize: 14, color: isEmpty ? 'transparent' : s.color, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: '22px', flex: 1, padding: '0 8px 0 2px' }}>
                         {isEmpty ? '·' : content}
                       </span>
                     </div>
@@ -783,12 +783,12 @@ function LineNumberedEditor({ c, value, onChange, onPaste, isDragging, highlight
     <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0, position: 'relative' }}>
       {isDragging && (
         <div style={{ position: 'absolute', inset: 0, background: c.isDark ? 'rgba(45,212,191,0.08)' : 'rgba(13,148,136,0.06)', border: `2px dashed ${c.teal}`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: 24 }}>⬇</span>
-          <span style={{ fontFamily: mono, fontSize: 13, color: c.teal }}>{dropFileLabel || 'drop file here'}</span>
+          <span style={{ fontSize: 26 }}>⬇</span>
+          <span style={{ fontFamily: mono, fontSize: 15, color: c.teal }}>{dropFileLabel || 'drop file here'}</span>
         </div>
       )}
       {value.trim() && (
-        <div ref={lnRef} style={{ background: c.lineNumBg, borderRight: `1px solid ${c.borderSoft}`, padding: '1rem 8px 1rem 12px', textAlign: 'right', fontFamily: mono, fontSize: 13, lineHeight: 1.8, userSelect: 'none', overflowY: 'hidden', minWidth: 48, flexShrink: 0 }}>
+        <div ref={lnRef} style={{ background: c.lineNumBg, borderRight: `1px solid ${c.borderSoft}`, padding: '1rem 8px 1rem 12px', textAlign: 'right', fontFamily: mono, fontSize: 15, lineHeight: 1.8, userSelect: 'none', overflowY: 'hidden', minWidth: 48, flexShrink: 0 }}>
           {lines.map((_, i) => (
             <div key={i} style={{ color: highlightLine === i + 1 ? c.teal : c.lineNumColor, background: highlightLine === i + 1 ? c.tealGlow : 'transparent', borderRadius: 3, transition: '0.2s' }}>
               {i + 1}
@@ -806,7 +806,7 @@ function LineNumberedEditor({ c, value, onChange, onPaste, isDragging, highlight
         placeholder={placeholder}
         style={{
           flex: 1, background: 'transparent', border: 'none', outline: 'none',
-          color: c.text1, fontFamily: mono, fontSize: 14, lineHeight: 1.8,
+          color: c.text1, fontFamily: mono, fontSize: 16, lineHeight: 1.8,
           padding: '1rem 1.25rem', resize: 'none', tabSize: 2,
           overflowY: 'auto', overflowX: 'hidden',
           minWidth: 0, width: '100%',
@@ -822,7 +822,7 @@ function Toast({ message, visible, c, undoable }) {
   return (
     <div
       onClick={undoable && window._fpUndo ? () => window._fpUndo() : undefined}
-      style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', background: c.bgSurface, border: `1px solid ${c.green}`, color: c.green, fontFamily: mono, fontSize: 12, padding: '8px 18px', borderRadius: 20, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(8px)', transition: 'opacity 0.25s, transform 0.25s', pointerEvents: visible && undoable ? 'all' : 'none', zIndex: 200, cursor: undoable ? 'pointer' : 'default' }}>
+      style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', background: c.bgSurface, border: `1px solid ${c.green}`, color: c.green, fontFamily: mono, fontSize: 14, padding: '8px 18px', borderRadius: 20, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(8px)', transition: 'opacity 0.25s, transform 0.25s', pointerEvents: visible && undoable ? 'all' : 'none', zIndex: 200, cursor: undoable ? 'pointer' : 'default' }}>
       ✓ {message}
     </div>
   );
@@ -870,8 +870,8 @@ function YouTubeCard({ query, c, locale }) {
       </div>
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: '#f87171', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{video.title}</p>
-        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: c.text3, margin: 0 }}>
+        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#f87171', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{video.title}</p>
+        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: c.text3, margin: 0 }}>
           {video.channel}{video.viewCount ? ` · ${video.viewCount} views` : ''}
         </p>
       </div>
@@ -889,11 +889,11 @@ class ErrorBoundary extends Component {
     const c = this.props.theme || darkTheme;
     return (
       <div style={{ minHeight: '100vh', background: c.bgBase, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: '2rem', fontFamily: "'Sora', sans-serif" }}>
-        <span style={{ fontSize: 32 }}>⚠</span>
-        <p style={{ color: c.text1, fontSize: 16, fontWeight: 600, margin: 0 }}>Something went wrong</p>
-        <p style={{ color: c.text3, fontSize: 12, fontFamily: "'JetBrains Mono', monospace", margin: 0, maxWidth: 400, textAlign: 'center', lineHeight: 1.6 }}>{this.state.error?.message || 'An unexpected error occurred.'}</p>
+        <span style={{ fontSize: 34 }}>⚠</span>
+        <p style={{ color: c.text1, fontSize: 18, fontWeight: 600, margin: 0 }}>Something went wrong</p>
+        <p style={{ color: c.text3, fontSize: 14, fontFamily: "'JetBrains Mono', monospace", margin: 0, maxWidth: 400, textAlign: 'center', lineHeight: 1.6 }}>{this.state.error?.message || 'An unexpected error occurred.'}</p>
         <button onClick={() => { this.setState({ crashed: false, error: null }); window.location.hash = ''; }}
-          style={{ marginTop: 8, padding: '10px 24px', borderRadius: 20, border: `1px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
+          style={{ marginTop: 8, padding: '10px 24px', borderRadius: 20, border: `1px solid ${c.tealDim}`, background: c.tealGlow, color: c.teal, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>
           ↺ Reload app
         </button>
       </div>
@@ -1271,23 +1271,23 @@ function AppInner() {
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', overflow: 'hidden' }}>
-          {!isMobile && <span style={{ fontSize: 10, fontFamily: mono, color: c.text3, display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            <kbd style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 4, padding: '1px 5px', fontSize: 10, color: c.text3 }}>{navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}</kbd>
-            <kbd style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 4, padding: '1px 5px', fontSize: 10, color: c.text3 }}>Enter</kbd>
+          {!isMobile && <span style={{ fontSize: 12, fontFamily: mono, color: c.text3, display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <kbd style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 4, padding: '1px 5px', fontSize: 12, color: c.text3 }}>{navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}</kbd>
+            <kbd style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 4, padding: '1px 5px', fontSize: 12, color: c.text3 }}>Enter</kbd>
             <span>{t.toAnalyze}</span>
           </span>}
-          <button onClick={() => setLocale(l => l === 'en' ? 'km' : 'en')} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 10px', cursor: 'pointer', fontFamily: locale === 'km' ? mono : khmer, fontSize: 11, color: c.text2, transition: '0.15s', flexShrink: 0 }}
+          <button onClick={() => setLocale(l => l === 'en' ? 'km' : 'en')} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 10px', cursor: 'pointer', fontFamily: locale === 'km' ? mono : khmer, fontSize: 13, color: c.text2, transition: '0.15s', flexShrink: 0 }}
             onMouseEnter={e => e.currentTarget.style.borderColor = c.tealDim} onMouseLeave={e => e.currentTarget.style.borderColor = c.border}>{t.langToggle}</button>
           {/* Theme picker — only show on desktop */}
           {!isMobile && Object.keys(allThemes).length > 1 && (
             <select value={codeThemeName} onChange={e => setCodeThemeName(e.target.value)}
-              style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 10, padding: '5px 6px', cursor: 'pointer', outline: 'none' }}>
+              style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 12, padding: '5px 6px', cursor: 'pointer', outline: 'none' }}>
               {Object.keys(allThemes).map(name => <option key={name} value={name}>{name}</option>)}
             </select>
           )}
-          <button onClick={() => setIsDark(p => !p)} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 11, color: c.text2, transition: '0.15s', flexShrink: 0 }}
+          <button onClick={() => setIsDark(p => !p)} style={{ background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontFamily: mono, fontSize: 13, color: c.text2, transition: '0.15s', flexShrink: 0 }}
             onMouseEnter={e => e.currentTarget.style.borderColor = c.tealDim} onMouseLeave={e => e.currentTarget.style.borderColor = c.border}>
-            <span style={{ fontSize: 13 }}>{isDark ? '☀' : '☾'}</span>
+            <span style={{ fontSize: 15 }}>{isDark ? '☀' : '☾'}</span>
             {!isMobile && (isDark ? t.light : t.dark)}
           </button>
         </div>
@@ -1300,14 +1300,14 @@ function AppInner() {
         </h1>
         {/* Powered by Groq */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 8 }}>
-          <span style={{ fontFamily: mono, fontSize: 22, color: c.text3 }}>{locale === 'km' ? 'ដំណើរការដោយ' : 'Powered by'}</span>
-          <span style={{ fontFamily: mono, fontSize: 22, color: c.teal, fontWeight: 600 }}>Groq</span>
+          <span style={{ fontFamily: mono, fontSize: 24, color: c.text3 }}>{locale === 'km' ? 'ដំណើរការដោយ' : 'Powered by'}</span>
+          <span style={{ fontFamily: mono, fontSize: 24, color: c.teal, fontWeight: 600 }}>Groq</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap', padding: '0 1rem' }}>
-          <span style={{ fontFamily: mono, fontSize: 10, color: c.text3 }}>{t.tryExample}:</span>
+          <span style={{ fontFamily: mono, fontSize: 12, color: c.text3 }}>{t.tryExample}:</span>
           {t.examples.map((ex, i) => (
             <button key={i} onClick={() => loadExample(ex)}
-              style={{ fontFamily: mono, fontSize: 10, padding: '4px 10px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.15s' }}
+              style={{ fontFamily: mono, fontSize: 12, padding: '4px 10px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.15s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
               {ex.label}
@@ -1325,7 +1325,7 @@ function AppInner() {
             onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
             {/* Top row: dots + clear */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
-              <span style={{ fontFamily: mono, fontSize: 11, color: c.text3, display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+              <span style={{ fontFamily: mono, fontSize: 13, color: c.text3, display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                 <Dot color={c.amber} /><Dot color={c.green} /><Dot color={c.red} />
                 {!isMobile && <>&nbsp; input.{({ python: 'py', sql: 'sql', csharp: 'cs', java: 'java', php: 'php', typescript: 'ts' })[language] || 'js'}</>}
               </span>
@@ -1334,22 +1334,22 @@ function AppInner() {
                 const prev = codeInput;
                 setCodeInput('');
                 showUndoToast(locale === 'km' ? 'បានលុបកូដ · ប្តូរត្រឡប់?' : 'Code cleared · Undo?', () => setCodeInput(prev));
-              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontSize: 11, fontFamily: mono, padding: '2px 6px', borderRadius: 5, flexShrink: 0 }}
+              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text3, fontSize: 13, fontFamily: mono, padding: '2px 6px', borderRadius: 5, flexShrink: 0 }}
                 onMouseEnter={e => e.target.style.color = c.text1} onMouseLeave={e => e.target.style.color = c.text3}>{t.clearBtn}</button>
             </div>
             {/* Language selector row — below clear, easy to see and select */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderBottom: `1px solid ${c.borderSoft}`, background: c.bgSurface }}>
-              <span style={{ fontFamily: mono, fontSize: 10, color: c.text3, flexShrink: 0 }}>
+              <span style={{ fontFamily: mono, fontSize: 12, color: c.text3, flexShrink: 0 }}>
                 {locale === 'km' ? 'ភាសា:' : 'Language:'}
               </span>
               <select value={language} onChange={e => setLanguage(e.target.value)}
-                style={{ width: '120px', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: c.bgPanel, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 12, padding: '5px 8px', cursor: 'pointer', outline: 'none', transition: '0.15s' }}
+                style={{ width: '120px', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: c.bgPanel, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text1, fontFamily: mono, fontSize: 14, padding: '5px 8px', cursor: 'pointer', outline: 'none', transition: '0.15s' }}
                 onFocus={e => e.currentTarget.style.borderColor = c.tealDim}
                 onBlur={e => e.currentTarget.style.borderColor = c.border}>
                 {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
               {/* Auto-detected badge — shows when language was auto-switched */}
-              <span style={{ fontFamily: mono, fontSize: 9, color: c.teal, background: c.tealGlow, padding: '2px 7px', borderRadius: 20, flexShrink: 0, opacity: 0.85 }}>
+              <span style={{ fontFamily: mono, fontSize: 11, color: c.teal, background: c.tealGlow, padding: '2px 7px', borderRadius: 20, flexShrink: 0, opacity: 0.85 }}>
                 {locale === 'km' ? 'ស្វ័យប្រវត្តិ' : 'auto'}
               </span>
             </div>
@@ -1358,7 +1358,7 @@ function AppInner() {
               <div style={{ display: 'flex', gap: 6, padding: '8px 12px', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
                 {MODES.map(m => (
                   <button key={m} onClick={() => setMode(m)}
-                    style={{ fontFamily: tf, fontSize: 11, padding: '5px 14px', borderRadius: 20, border: `1px solid ${mode === m ? c.tealDim : c.border}`, background: mode === m ? c.tealGlow : 'transparent', color: mode === m ? c.teal : c.text2, cursor: 'pointer', transition: '0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}
+                    style={{ fontFamily: tf, fontSize: 13, padding: '5px 14px', borderRadius: 20, border: `1px solid ${mode === m ? c.tealDim : c.border}`, background: mode === m ? c.tealGlow : 'transparent', color: mode === m ? c.teal : c.text2, cursor: 'pointer', transition: '0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}
                     onMouseEnter={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; } }}
                     onMouseLeave={e => { if (mode !== m) { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; } }}>
                     {t.modes[m]}
@@ -1366,7 +1366,7 @@ function AppInner() {
                 ))}
               </div>
               {/* Mode description */}
-              <div style={{ padding: '0 12px 7px', fontFamily: tf, fontSize: 11, color: c.text3, lineHeight: 1.5 }}>
+              <div style={{ padding: '0 12px 7px', fontFamily: tf, fontSize: 13, color: c.text3, lineHeight: 1.5 }}>
                 {{
                   both: locale === 'km' ? 'ជួសជុលបញ្ហា និងធ្វើឱ្យកូដស្អាតស្រស់ — ល្អបំផុតសម្រាប់ការប្រើប្រាស់ទូទៅ' : 'Fixes bugs and cleans up code structure — best for most cases',
                   fix: locale === 'km' ? 'ជួសជុលតែបញ្ហា ដោយមិនប៉ះពាល់ការរចនាបន្ថែម' : 'Fixes bugs only, without touching code structure or style',
@@ -1387,11 +1387,11 @@ function AppInner() {
             {/* Line/char count + size warning */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 12px', background: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.redGlow : 'rgba(245,158,11,0.08)') : c.bgSurface, borderTop: `1px solid ${charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.borderSoft}`, transition: 'background 0.2s, border-color 0.2s' }}>
               {charCount >= CHAR_WARN
-                ? <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_LIMIT ? c.red : c.amber }}>
+                ? <span style={{ fontFamily: mono, fontSize: 12, color: charCount >= CHAR_LIMIT ? c.red : c.amber }}>
                   {charCount >= CHAR_LIMIT ? '✗ Exceeds 12,000 char limit' : `⚠ Approaching limit (${CHAR_LIMIT - charCount} left)`}
                 </span>
                 : <span />}
-              <span style={{ fontFamily: mono, fontSize: 10, color: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.text3 }}>{lineCount} {t.lines} · {charCount} {t.chars}</span>
+              <span style={{ fontFamily: mono, fontSize: 12, color: charCount >= CHAR_WARN ? (charCount >= CHAR_LIMIT ? c.red : c.amber) : c.text3 }}>{lineCount} {t.lines} · {charCount} {t.chars}</span>
             </div>
           </Panel>
 
@@ -1408,7 +1408,7 @@ function AppInner() {
           {isLoading && originalCode.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: c.bgSurface, borderRadius: 12, border: `1px solid ${c.borderSoft}` }}>
               {[0,1,2].map(i => <span key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: c.teal, display: 'inline-block', animation: `fpShimmer 1.2s ease-in-out ${i * 0.15}s infinite` }} />)}
-              <span style={{ fontFamily: mono, fontSize: 11, color: c.teal }}>{locale === 'km' ? 'កំពុងគណនា...' : 'Calculating...'}</span>
+              <span style={{ fontFamily: mono, fontSize: 13, color: c.teal }}>{locale === 'km' ? 'កំពុងគណនា...' : 'Calculating...'}</span>
             </div>
           )}
           {!isLoading && healthScore !== null && <HealthRing score={healthScore} c={c} label={t.codeHealth} isMobile={isMobile} bugs={bugs} t={t} />}
@@ -1417,7 +1417,7 @@ function AppInner() {
           {history.length > 0 && (
             <Panel c={c}>
               <PanelHeader c={c}>
-                <span style={{ fontFamily: tf, fontSize: 11, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.history}</span>
+                <span style={{ fontFamily: tf, fontSize: 13, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.history}</span>
                 <button onClick={() => {
                   if (!clearConfirm) {
                     setClearConfirm(true);
@@ -1426,7 +1426,7 @@ function AppInner() {
                     clearHistory();
                     setClearConfirm(false);
                   }
-                }} style={{ background: 'none', border: clearConfirm ? `1px solid ${c.red}` : 'none', borderRadius: 20, padding: clearConfirm ? '2px 8px' : '0', cursor: 'pointer', color: c.red, fontFamily: tf, fontSize: 10, textTransform: 'uppercase', transition: '0.2s' }}>
+                }} style={{ background: 'none', border: clearConfirm ? `1px solid ${c.red}` : 'none', borderRadius: 20, padding: clearConfirm ? '2px 8px' : '0', cursor: 'pointer', color: c.red, fontFamily: tf, fontSize: 12, textTransform: 'uppercase', transition: '0.2s' }}>
                   {clearConfirm ? (locale === 'km' ? 'ប្រាកដ?' : 'confirm?') : t.clearAll}
                 </button>
               </PanelHeader>
@@ -1443,15 +1443,15 @@ function AppInner() {
                       if (item._meta?.codeInput) setCodeInput(item._meta.codeInput);
                       switchTab('bugs');
                     }}
-                      style={{ width: '100%', textAlign: 'left', padding: '9px 12px', background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 12, cursor: 'pointer', transition: '0.15s' }}
+                      style={{ width: '100%', textAlign: 'left', padding: '9px 12px', background: c.bgSurface, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text2, fontFamily: mono, fontSize: 14, cursor: 'pointer', transition: '0.15s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = c.tealDim; e.currentTarget.style.color = c.teal; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3, flexWrap: 'wrap' }}>
-                        {meta.language && <span style={{ fontFamily: mono, fontSize: 9, padding: '1px 6px', borderRadius: 10, background: c.tealGlow, color: c.teal }}>{LANGUAGES.find(l => l.value === meta.language)?.label}</span>}
-                        {meta.mode && <span style={{ fontFamily: mono, fontSize: 9, padding: '1px 6px', borderRadius: 10, background: 'rgba(167,139,250,0.1)', color: c.purple }}>{meta.mode}</span>}
-                        {meta.locale === 'km' && <span style={{ fontFamily: mono, fontSize: 9, padding: '1px 6px', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: c.amber }}>ខ្មែរ</span>}
-                        <span style={{ fontFamily: mono, fontSize: 9, color: healthColor(score, c), marginLeft: 'auto' }}>{score}/100</span>
-                        {meta.time && <span style={{ fontFamily: mono, fontSize: 9, color: c.text3 }}>{(() => {
+                        {meta.language && <span style={{ fontFamily: mono, fontSize: 11, padding: '1px 6px', borderRadius: 10, background: c.tealGlow, color: c.teal }}>{LANGUAGES.find(l => l.value === meta.language)?.label}</span>}
+                        {meta.mode && <span style={{ fontFamily: mono, fontSize: 11, padding: '1px 6px', borderRadius: 10, background: 'rgba(167,139,250,0.1)', color: c.purple }}>{meta.mode}</span>}
+                        {meta.locale === 'km' && <span style={{ fontFamily: mono, fontSize: 11, padding: '1px 6px', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: c.amber }}>ខ្មែរ</span>}
+                        <span style={{ fontFamily: mono, fontSize: 11, color: healthColor(score, c), marginLeft: 'auto' }}>{score}/100</span>
+                        {meta.time && <span style={{ fontFamily: mono, fontSize: 11, color: c.text3 }}>{(() => {
                           const d = new Date(meta.time), now = new Date();
                           const today = now.toDateString(), yesterday = new Date(now - 86400000).toDateString();
                           const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1481,7 +1481,7 @@ function AppInner() {
                   onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = c.text1; }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = c.text3; }}>
                   {isMobile ? t.tabs[key].split(' ')[0] : t.tabs[key]}
-                  {bugCount > 0 && <span style={{ background: c.red, color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 20, lineHeight: 1.4 }}>{bugCount}</span>}
+                  {bugCount > 0 && <span style={{ background: c.red, color: '#fff', fontSize: 11, fontWeight: 700, padding: '1px 5px', borderRadius: 20, lineHeight: 1.4 }}>{bugCount}</span>}
                 </button>
               );
             })}
@@ -1489,10 +1489,10 @@ function AppInner() {
 
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
             {error && (
-              <div style={{ margin: '1rem', padding: '12px 16px', background: c.redGlow, border: `1px solid ${c.red}`, borderLeft: `3px solid ${c.red}`, borderRadius: 10, color: c.red, fontFamily: tf, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ margin: '1rem', padding: '12px 16px', background: c.redGlow, border: `1px solid ${c.red}`, borderLeft: `3px solid ${c.red}`, borderRadius: 10, color: c.red, fontFamily: tf, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <span>{error}</span>
                 <button onClick={handleAnalyze} disabled={!codeInput.trim()}
-                  style={{ fontFamily: tf, fontSize: 12, padding: '5px 14px', borderRadius: 20, border: `1px solid ${c.red}`, background: c.redGlow, color: c.red, cursor: 'pointer', flexShrink: 0, transition: '0.15s' }}>
+                  style={{ fontFamily: tf, fontSize: 14, padding: '5px 14px', borderRadius: 20, border: `1px solid ${c.red}`, background: c.redGlow, color: c.red, cursor: 'pointer', flexShrink: 0, transition: '0.15s' }}>
                   {locale === 'km' ? '↺ ព្យាយាមម្តងទៀត' : '↺ Try again'}
                 </button>
               </div>
@@ -1500,8 +1500,8 @@ function AppInner() {
             {isLoading && <LoadingSkeleton c={c} progressStep={isWarmingUp ? t.warmingUp : t.progressSteps[progressStep]} />}
             {!analysisResult && !isLoading && !error && (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: '2.5rem 2rem' }}>
-                <span style={{ fontSize: 28, opacity: 0.15 }}>◈</span>
-                <p style={{ fontFamily: tf, fontSize: 13, color: c.text2, margin: 0, textAlign: 'center', lineHeight: 1.6 }}>
+                <span style={{ fontSize: 30, opacity: 0.15 }}>◈</span>
+                <p style={{ fontFamily: tf, fontSize: 15, color: c.text2, margin: 0, textAlign: 'center', lineHeight: 1.6 }}>
                   {locale === 'km' ? 'បិទភ្ជាប់កូដ ហើយចុច ⌘Enter' : 'Paste code & press ⌘Enter'}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 300 }}>
@@ -1512,8 +1512,8 @@ function AppInner() {
                     { icon: '↑', color: c.purple, text: locale === 'km' ? '៣ ការណែនាំជាក់លាក់ដើម្បីកែលម្អ' : '3 actionable tips to improve your code' },
                   ].map(({ icon, color, text }) => (
                     <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: c.bgSurface, borderRadius: 8, border: `1px solid ${c.borderSoft}` }}>
-                      <span style={{ color, fontSize: 14, flexShrink: 0, width: 16, textAlign: 'center' }}>{icon}</span>
-                      <span style={{ fontFamily: tf, fontSize: 12, color: c.text2, lineHeight: 1.4 }}>{text}</span>
+                      <span style={{ color, fontSize: 16, flexShrink: 0, width: 16, textAlign: 'center' }}>{icon}</span>
+                      <span style={{ fontFamily: tf, fontSize: 14, color: c.text2, lineHeight: 1.4 }}>{text}</span>
                     </div>
                   ))}
                 </div>
@@ -1528,15 +1528,15 @@ function AppInner() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {!bugs.length ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '2rem', color: c.green }}>
-                        <span style={{ fontSize: 28 }}>✓</span>
-                        <span style={{ fontFamily: tf, fontSize: 14 }}>{t.noBugs}</span>
+                        <span style={{ fontSize: 30 }}>✓</span>
+                        <span style={{ fontFamily: tf, fontSize: 16 }}>{t.noBugs}</span>
                       </div>
                     ) : (
                       <>
                         {/* Fix all button */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                           <button onClick={handleFixAll} disabled={fixingAll}
-                            style={{ fontFamily: tf, fontSize: 10, padding: '5px 14px', borderRadius: 20, border: `1px solid ${c.green}`, background: 'rgba(74,222,128,0.08)', color: c.green, cursor: fixingAll ? 'wait' : 'pointer', transition: '0.15s' }}>
+                            style={{ fontFamily: tf, fontSize: 12, padding: '5px 14px', borderRadius: 20, border: `1px solid ${c.green}`, background: 'rgba(74,222,128,0.08)', color: c.green, cursor: fixingAll ? 'wait' : 'pointer', transition: '0.15s' }}>
                             {fixingAll ? t.fixingAll : t.fixAll}
                           </button>
                         </div>
@@ -1544,18 +1544,18 @@ function AppInner() {
                           <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
                             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
                               <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
-                              <span style={{ fontFamily: mono, fontSize: 14, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
+                              <span style={{ fontFamily: mono, fontSize: 16, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
                               <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                               {b.lineNumber && (
                                 <button onClick={() => setHighlightLine(l => l === b.lineNumber ? null : b.lineNumber)}
-                                  style={{ fontFamily: mono, fontSize: 9, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
+                                  style={{ fontFamily: mono, fontSize: 11, padding: '2px 8px', borderRadius: 10, border: `1px solid ${c.border}`, background: highlightLine === b.lineNumber ? c.tealGlow : 'transparent', color: highlightLine === b.lineNumber ? c.teal : c.text3, cursor: 'pointer', transition: '0.15s' }}>
                                   {t.lineLabel} {b.lineNumber}
                                 </button>
                               )}
                               {b.confidence != null && (
-                                <span style={{ fontFamily: mono, fontSize: 9, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
+                                <span style={{ fontFamily: mono, fontSize: 11, color: b.confidence >= 90 ? c.green : b.confidence >= 70 ? c.amber : c.text3 }}>
                                   {b.confidence}% {t.confidenceLabel}
                                 </span>
                               )}
@@ -1578,7 +1578,7 @@ function AppInner() {
                           { key: 'diff', label: t.diffView },
                         ].map(({ key, label }) => (
                           <button key={key} onClick={() => setFixedView(key)}
-                            style={{ fontFamily: mono, fontSize: 11, padding: '4px 10px', borderRadius: 20, border: `1px solid ${fixedView === key ? c.tealDim : c.border}`, background: fixedView === key ? c.tealGlow : 'transparent', color: fixedView === key ? c.teal : c.text1, cursor: 'pointer', transition: '0.15s' }}>
+                            style={{ fontFamily: mono, fontSize: 13, padding: '4px 10px', borderRadius: 20, border: `1px solid ${fixedView === key ? c.tealDim : c.border}`, background: fixedView === key ? c.tealGlow : 'transparent', color: fixedView === key ? c.teal : c.text1, cursor: 'pointer', transition: '0.15s' }}>
                             {label}
                           </button>
                         ))}
@@ -1590,7 +1590,7 @@ function AppInner() {
                     </div>
                     {fixedView === 'diff'
                       ? <DiffView original={originalCode} fixed={analysisResult.fixedCode} c={c} screenW={screenW} isDark={isDark} t={t} />
-                      : <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 14, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>
+                      : <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 16, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.fixedCode}</SyntaxHighlighter>
                     }
                   </div>
                 )}
@@ -1599,15 +1599,15 @@ function AppInner() {
                 {activeTab === 'commented' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontFamily: tf, fontSize: 12, color: c.amber }}>{t.commentedLabel}</span>
+                      <span style={{ fontFamily: tf, fontSize: 14, color: c.amber }}>{t.commentedLabel}</span>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <UseCodeBtn c={c} onClick={() => { setCodeInput(formatCode(analysisResult.commentedCode || analysisResult.fixedCode, language)); setWasLoadedFromFix(true); showToast(locale === 'km' ? 'បានដាក់ក្នុង editor' : 'Loaded into editor'); }} />
                         <CopyBtn c={c} onClick={() => handleCopy(analysisResult.commentedCode || analysisResult.fixedCode, language)} />
                       </div>
                     </div>
                     {analysisResult.commentedCode
-                      ? <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 14, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
-                      : <div style={{ padding: '1.5rem', background: c.bgSurface, borderRadius: 10, fontFamily: tf, fontSize: 13, color: c.text1, textAlign: 'center', lineHeight: 1.8 }}>{t.noCommented}<br /><span style={{ color: c.amber }}>{t.noCommentedHint}</span></div>}
+                      ? <SyntaxHighlighter language={langForHL} style={activeTheme} wrapLines={true} wrapLongLines={true} customStyle={{ margin: 0, borderRadius: 10, fontSize: 16, lineHeight: 1.75, background: c.codeBg, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'hidden' }}>{analysisResult.commentedCode}</SyntaxHighlighter>
+                      : <div style={{ padding: '1.5rem', background: c.bgSurface, borderRadius: 10, fontFamily: tf, fontSize: 15, color: c.text1, textAlign: 'center', lineHeight: 1.8 }}>{t.noCommented}<br /><span style={{ color: c.amber }}>{t.noCommentedHint}</span></div>}
                   </div>
                 )}
 
@@ -1615,7 +1615,7 @@ function AppInner() {
                 {activeTab === 'explain' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {analysisResult._locale && analysisResult._locale !== locale && (
-                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 12, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 14, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span>⚠</span>
                         <span>{locale === 'km' ? 'ការពន្យល់នេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ' : 'This explanation is in Khmer — click ↺ Re-analyze to get it in English'}</span>
                       </div>
@@ -1647,25 +1647,25 @@ function AppInner() {
 
                       // If no structured format detected, fall back to plain text
                       if (blocks.filter(b => b.type === 'line').length === 0) {
-                        return <p style={{ fontFamily: tf, fontSize: 15, color: c.text1, lineHeight: 1.9, margin: 0 }}>{raw}</p>;
+                        return <p style={{ fontFamily: tf, fontSize: 17, color: c.text1, lineHeight: 1.9, margin: 0 }}>{raw}</p>;
                       }
 
                       return blocks.map((block, i) => {
                         if (block.type === 'overview') return (
                           <div key={i} style={{ padding: '10px 14px', background: c.bgSurface, borderRadius: 8, border: `1px solid ${c.borderSoft}`, borderLeft: `3px solid ${c.teal}` }}>
-                            <span style={{ fontFamily: mono, fontSize: 10, color: c.teal, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>Overview</span>
-                            <p style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>
+                            <span style={{ fontFamily: mono, fontSize: 12, color: c.teal, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>Overview</span>
+                            <p style={{ fontFamily: tf, fontSize: 16, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>
                           </div>
                         );
                         if (block.type === 'remember') return (
                           <div key={i} style={{ padding: '10px 14px', background: isDark ? 'rgba(45,212,191,0.06)' : 'rgba(13,122,110,0.06)', borderRadius: 8, border: `1px solid ${c.tealDim}`, borderLeft: `3px solid ${c.teal}` }}>
-                            <span style={{ fontFamily: mono, fontSize: 10, color: c.teal, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>Remember</span>
-                            <p style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>
+                            <span style={{ fontFamily: mono, fontSize: 12, color: c.teal, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>Remember</span>
+                            <p style={{ fontFamily: tf, fontSize: 16, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>
                           </div>
                         );
                         if (block.type === 'line') return (
                           <div key={i} style={{ padding: '12px 14px', background: c.redGlow, borderRadius: 8, borderLeft: `3px solid ${c.red}` }}>
-                            <p style={{ fontFamily: mono, fontSize: 12, color: c.red, fontWeight: 600, margin: '0 0 8px' }}>{block.title}</p>
+                            <p style={{ fontFamily: mono, fontSize: 14, color: c.red, fontWeight: 600, margin: '0 0 8px' }}>{block.title}</p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                               {block.bullets.map((bullet, bi) => {
                                 const isProb = bullet.toLowerCase().startsWith('problem:') || bullet.startsWith('បញ្ហា:') || bullet.startsWith('• Problem');
@@ -1676,17 +1676,17 @@ function AppInner() {
                                 const prefix = isProb ? 'Problem' : isFix ? 'Fix' : isImp ? 'Impact' : null;
                                 return (
                                   <div key={bi} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                                    <span style={{ color: dotColor, fontFamily: mono, fontSize: 10, fontWeight: 600, flexShrink: 0, marginTop: 3, minWidth: prefix ? 52 : 12 }}>
+                                    <span style={{ color: dotColor, fontFamily: mono, fontSize: 12, fontWeight: 600, flexShrink: 0, marginTop: 3, minWidth: prefix ? 52 : 12 }}>
                                       {prefix || '·'}
                                     </span>
-                                    <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{prefix ? label : bullet}</span>
+                                    <span style={{ fontFamily: tf, fontSize: 16, color: c.text1, lineHeight: 1.65 }}>{prefix ? label : bullet}</span>
                                   </div>
                                 );
                               })}
                             </div>
                           </div>
                         );
-                        return <p key={i} style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>;
+                        return <p key={i} style={{ fontFamily: tf, fontSize: 16, color: c.text1, lineHeight: 1.7, margin: 0 }}>{block.text}</p>;
                       });
                     })()}
                   </div>
@@ -1696,7 +1696,7 @@ function AppInner() {
                 {activeTab === 'suggest' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {analysisResult._locale && analysisResult._locale !== locale && (
-                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 12, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 14, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span>⚠</span>
                         <span>{locale === 'km' ? 'ការណែនាំនេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ' : 'These suggestions are in Khmer — click ↺ Re-analyze to get them in English'}</span>
                       </div>
@@ -1707,8 +1707,8 @@ function AppInner() {
                       const tip = typeof s === 'string' ? s : s?.tip;
                       return (
                         <div key={i} style={{ padding: '12px 14px', background: c.bgSurface, borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                          <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 10, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
-                          <span style={{ fontFamily: tf, fontSize: 14, color: c.text1, lineHeight: 1.65 }}>{tip}</span>
+                          <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 12, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                          <span style={{ fontFamily: tf, fontSize: 16, color: c.text1, lineHeight: 1.65 }}>{tip}</span>
                         </div>
                       );
                     })}
@@ -1728,14 +1728,14 @@ function AppInner() {
 
                       return (
                         <div style={{ marginTop: 4, borderTop: `1px solid ${c.borderSoft}`, paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          <span style={{ fontFamily: mono, fontSize: 10, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                          <span style={{ fontFamily: mono, fontSize: 12, color: c.text3, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
                             {locale === 'km' ? 'ឯកសារយោង' : 'References'}
                           </span>
 
                           {/* YouTube videos — one per suggestion */}
                           {ytItems.length > 0 && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              <span style={{ fontFamily: mono, fontSize: 10, color: c.red, display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <span style={{ fontFamily: mono, fontSize: 12, color: c.red, display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill={c.red}><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                 {locale === 'km' ? 'វីដេអូណែនាំ' : 'Tutorial videos'}
                               </span>
@@ -1748,12 +1748,12 @@ function AppInner() {
                           {/* MDN links */}
                           {mdnLinks.length > 0 && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              <span style={{ fontFamily: mono, fontSize: 10, color: c.blue }}>
+                              <span style={{ fontFamily: mono, fontSize: 12, color: c.blue }}>
                                 📄 {locale === 'km' ? 'ឯកសារ MDN' : 'MDN Documentation'}
                               </span>
                               {mdnLinks.map((link, i) => (
                                 <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: mono, fontSize: 11, color: c.blue, textDecoration: 'none', padding: '5px 12px', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(96,165,250,0.25)' : 'rgba(29,78,216,0.2)'}`, background: isDark ? 'rgba(96,165,250,0.06)' : 'rgba(29,78,216,0.05)', width: 'fit-content', transition: '0.15s' }}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: mono, fontSize: 13, color: c.blue, textDecoration: 'none', padding: '5px 12px', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(96,165,250,0.25)' : 'rgba(29,78,216,0.2)'}`, background: isDark ? 'rgba(96,165,250,0.06)' : 'rgba(29,78,216,0.05)', width: 'fit-content', transition: '0.15s' }}
                                   onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.14)' : 'rgba(29,78,216,0.1)'}
                                   onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(96,165,250,0.06)' : 'rgba(29,78,216,0.05)'}>
                                   → {link.label}
@@ -1770,13 +1770,13 @@ function AppInner() {
                 {/* Bottom actions */}
                 <div data-tour="actions" style={{ marginTop: 20, paddingTop: 14, borderTop: `1px solid ${c.borderSoft}`, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button onClick={handleExport}
-                    style={{ fontFamily: tf, fontSize: 11, padding: '7px 16px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
+                    style={{ fontFamily: tf, fontSize: 13, padding: '7px 16px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = c.red; e.currentTarget.style.color = c.red; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
                     ↓ {t.exportPDF}
                   </button>
                   <button onClick={handleShare}
-                    style={{ fontFamily: tf, fontSize: 11, padding: '7px 16px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
+                    style={{ fontFamily: tf, fontSize: 13, padding: '7px 16px', borderRadius: 20, border: `1px solid ${c.border}`, background: 'transparent', color: c.text2, cursor: 'pointer', transition: '0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = c.blue; e.currentTarget.style.color = c.blue; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.color = c.text2; }}>
                     ↗ {t.shareBtn}
@@ -1790,7 +1790,7 @@ function AppInner() {
       </main>
 
       {/* Status */}
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 8, fontFamily: mono, fontSize: 10, color: c.text2, padding: `0 ${isMobile ? '0.75rem' : '1.25rem'} 1rem`, flexWrap: 'wrap' }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 8, fontFamily: mono, fontSize: 12, color: c.text2, padding: `0 ${isMobile ? '0.75rem' : '1.25rem'} 1rem`, flexWrap: 'wrap' }}>
         <span style={{ width: 5, height: 5, borderRadius: '50%', background: c.green, display: 'inline-block' }} />
         {t.connected} &nbsp;·&nbsp; {LANGUAGES.find(l => l.value === language)?.label} &nbsp;·&nbsp; {t.modes[mode]}
       </div>
