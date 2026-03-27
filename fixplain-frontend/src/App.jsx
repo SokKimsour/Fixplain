@@ -1133,28 +1133,41 @@ function AppInner() {
   }, [cooldown]);
 
   // When the UI locale changes AND a result already exists, translate only the
-  // explanation + suggestions via the lightweight /translate-results endpoint.
+  // explanation + suggestions via the lightweight /translate-text endpoint.
   // Code diffs are language-agnostic and are kept exactly as-is.
   useEffect(() => {
-    if (!analysisResult) return;
-    const explainText = analysisResult.explanation || '';
-    const suggestText = analysisResult.improvementSuggestions || [];
-    if (!explainText && !suggestText.length) return;
+    const result = analysisResult;
+    if (!result || (!result.explain && !result.explanation)) return;
+
+    showToast(locale === 'km' ? 'កំពុងបកប្រែ...' : 'Translating...');
+
+    const explain = result.explain || result.explanation || '';
+    const suggest = result.suggest || result.improvementSuggestions || [];
 
     const API = 'https://ffxplain-api.onrender.com';
-    fetch(`${API}/api/translate-results`, {
+    fetch(`${API}/api/translate-text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ explainText, suggestText, targetLocale: locale }),
+      body: JSON.stringify({ explain, suggest, targetLocale: locale }),
     })
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => {
-        setAnalysisResult(prev => prev ? {
-          ...prev,
-          explanation: data.explanation || prev.explanation,
-          improvementSuggestions: data.suggestions?.length ? data.suggestions : prev.improvementSuggestions,
-          _locale: locale,
-        } : prev);
+      .then(translatedData => {
+        setAnalysisResult(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            explain: translatedData.explain,
+            suggest: translatedData.suggest,
+            explanation: translatedData.explain, // keep for backward compat
+            improvementSuggestions: translatedData.suggest, // keep for backward compat
+            // Explicitly keep these the same
+            fixedCode: prev.fixedCode,
+            commentedCode: prev.commentedCode,
+            bugs: prev.bugs || prev.bugsFound,
+            bugsFound: prev.bugsFound, // keep for backward compat
+            _locale: locale,
+          };
+        });
       })
       .catch(() => { /* silent — keep current result */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
