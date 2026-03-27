@@ -1132,10 +1132,31 @@ function AppInner() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  // Auto-reanalyze when locale changes — keeps explanation in the correct language
+  // When the UI locale changes AND a result already exists, translate only the
+  // explanation + suggestions via the lightweight /translate-results endpoint.
+  // Code diffs are language-agnostic and are kept exactly as-is.
   useEffect(() => {
-    if (!analysisResult || originalCode.length <= 10) return;
-    handleAnalyze();
+    if (!analysisResult) return;
+    const explainText = analysisResult.explanation || '';
+    const suggestText = analysisResult.improvementSuggestions || [];
+    if (!explainText && !suggestText.length) return;
+
+    const API = 'https://ffxplain-api.onrender.com';
+    fetch(`${API}/api/translate-results`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ explainText, suggestText, targetLocale: locale }),
+    })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => {
+        setAnalysisResult(prev => prev ? {
+          ...prev,
+          explanation: data.explanation || prev.explanation,
+          improvementSuggestions: data.suggestions?.length ? data.suggestions : prev.improvementSuggestions,
+          _locale: locale,
+        } : prev);
+      })
+      .catch(() => { /* silent — keep current result */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
 

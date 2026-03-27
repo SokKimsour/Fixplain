@@ -484,6 +484,48 @@ Respond ONLY in strict JSON with one key:
 });
 
 
+// ── Translation-only endpoint (lightweight locale switch) ─────────────────────
+// Translates only the explain + suggest text fields without re-running analysis.
+// Uses the fast llama3-8b-8192 model to keep latency low (~1-2s).
+app.post('/api/translate-results', rateLimiter, async (req, res) => {
+  const { explainText, suggestText, targetLocale } = req.body;
+  if (!explainText && !suggestText) return res.status(400).json({ error: 'No text provided.' });
+  if (!targetLocale) return res.status(400).json({ error: 'targetLocale is required.' });
+
+  const localeLabel = targetLocale === 'km' ? 'Khmer (ភាសាខ្មែរ)' : 'English';
+
+  const systemPrompt = `You are a technical translator. Translate the following technical explanation into ${localeLabel}. Maintain all markdown formatting, code references in backticks, and structural labels (OVERVIEW, LINE, Problem, Fix, Impact, REMEMBER). Do NOT translate code identifiers, variable names, function names, or anything inside backticks. Respond ONLY with valid JSON: {"explanation": "...", "suggestions": [...]}`;
+
+  const userMessage = JSON.stringify({
+    explanation: explainText || '',
+    suggestions: suggestText || [],
+  });
+
+  try {
+    if (!groqClients.length) throw new Error('No Groq API keys configured');
+    const client = nextGroqClient();
+    const chat = await withTimeout(
+      client.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+        model: 'llama3-8b-8192',
+        response_format: { type: 'json_object' },
+        temperature: 0,
+        max_tokens: 2000,
+      }),
+      15000,
+      'Translate'
+    );
+    const parsed = safeParseJSON(chat.choices[0].message.content);
+    res.json({ explanation: parsed.explanation || '', suggestions: parsed.suggestions || [] });
+  } catch (err) {
+    console.error('[Translate]', err.message);
+    res.status(500).json({ error: 'Translation failed.' });
+  }
+});
+
 // ── YouTube video search endpoint ─────────────────────────────────────────────
 // Calls YouTube Data API v3 to find 1 relevant video for a given query.
 // Returns videoId, title, thumbnail, channelTitle, viewCount.
