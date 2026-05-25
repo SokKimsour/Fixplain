@@ -57,7 +57,7 @@ export const i18n = {
         },
       ]
     },
-    tabs: { bugs: 'Bugs Found', fixed: 'Fixed Code', commented: 'Commented Code', explain: 'Explanation', suggest: 'Suggestions' },
+    tabs: { bugs: 'Bugs Found', fixed: 'Fixed Code', commented: 'Commented Code', explain: 'Explanation', suggest: 'Suggestions', playground: 'Playground' },
     severity: { high: 'high', medium: 'medium', low: 'low' },
     modes: { both: 'Fix + Refactor', fix: 'Fix Only', refactor: 'Refactor Only' },
     modesMobile: { both: 'Fix+Ref', fix: 'Fix', refactor: 'Refactor' },
@@ -128,7 +128,7 @@ export const i18n = {
         },
       ]
     },
-    tabs: { bugs: 'បញ្ហាដែលរកឃើញ', fixed: 'កូដដែលជួសជុល', commented: 'កូដមានមតិ', explain: 'ការពន្យល់', suggest: 'ការណែនាំ' },
+    tabs: { bugs: 'បញ្ហាដែលរកឃើញ', fixed: 'កូដដែលជួសជុល', commented: 'កូដមានមតិ', explain: 'ការពន្យល់', suggest: 'ការណែនាំ', playground: 'សួនពិសោធន៍' },
     severity: { high: 'ខ្ពស់', medium: 'មធ្យម', low: 'ទាប' },
     modes: { both: 'ជួសជុល + តម្រៀប', fix: 'ជួសជុលតែប៉ុណ្ណោះ', refactor: 'តម្រៀបតែប៉ុណ្ណោះ' },
     modesMobile: { both: 'ជួសជុល', fix: 'ជួស', refactor: 'តម្រៀប' },

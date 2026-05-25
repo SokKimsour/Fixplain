@@ -29,28 +29,6 @@ export async function fixCode(req, res) {
         ? 'Assume the logic is correct. Focus ONLY on refactoring for readability and efficiency. Do not change function names.'
         : 'Both fix all bugs AND refactor the code for readability and efficiency. Do not change function names.';
 
-  const localeInstruction = locale === 'km'
-    ? `IMPORTANT — KHMER LANGUAGE OUTPUT RULES:
-
-RULE A — CODE PRESERVATION (ABSOLUTE):
-  Under NO circumstances should you translate variable names, function names, class names, method names, or any programming keywords into Khmer.
-  The code inside "fixedCode" and "commentedCode" must remain 100% in its original programming language.
-  Identifiers, operators, keywords (if, for, return, async, etc.), data string literals, and all structural code must be left completely untouched.
-  ONLY the descriptive lines inside JSDoc comment blocks (/** ... */) written above functions in "commentedCode" may be written in Khmer.
-
-RULE B — TARGETED TRANSLATION ONLY:
-  Translate ONLY these fields into Khmer (ភាសាខ្មែរ):
-  - Every "issue" string in "bugsFound" (e.g. "SQL injection vulnerability" → "ភាពងាយរងគ្រោះ SQL injection")
-  - The entire "explanation" field
-  - Every "tip" value in "improvementSuggestions"
-  Do NOT translate: "youtubeQuery", "mdnQuery", "severity", JSON keys, or any code inside "fixedCode"/"commentedCode".
-
-RULE C — CONSISTENCY (ALWAYS REFERENCE ENGLISH IDENTIFIERS):
-  Even when writing explanations and suggestions entirely in Khmer, you MUST still refer to the original English variable names, function names, and class names exactly as they appear in the code — wrapped in backticks.
-  Example: "អថេរ \`userCount\` មានបញ្ហា..." — keep the English identifier name inline inside the Khmer sentence.
-  This ensures developers can map every explanation directly back to the code they see without confusion.`
-    : '';
-
   const previousBugsInstruction = Array.isArray(previousBugs) && previousBugs.length > 0
     ? `\nPREVIOUS ANALYSIS CONTEXT: A prior review already identified these bugs. Do NOT re-report them if resolved:\n${previousBugs.map((b, i) => `  ${i + 1}. ${b}`).join('\n')}`
     : '';
@@ -77,7 +55,6 @@ RULE C — CONSISTENCY (ALWAYS REFERENCE ENGLISH IDENTIFIERS):
   const systemPrompt = `Act as a world-class ${language} software engineer performing a professional code review.
 ${modeInstruction}
 ${langRules}
-${localeInstruction}
 ${previousBugsInstruction}
 ${alreadyFixedInstruction}
 
@@ -115,25 +92,30 @@ RULE 6 — Confidence and severity must be consistent:
   - If confidence ≥ 90, any severity is appropriate.
   This prevents inflating the bug count with uncertain findings that lower the health score unfairly.
 
+RULE 7 — KHMER TRANSLATION & CODE PRESERVATION:
+  - You must generate text in both English (en) and Khmer (km) for all descriptive fields.
+  - Under NO circumstances should you translate variable names, function names, class names, method names, or any programming keywords into Khmer. Keep these identifiers wrapped in backticks exactly as they appear in the code (e.g. \`userCount\`).
+  - In Khmer translations, keep English code identifiers/names inline within the Khmer sentences.
+  - The code inside "fixedCode" and "commentedCode" must remain 100% in its original programming language (standard English syntax).
+
 SEVERITY DEFINITIONS — use these exact criteria, no exceptions:
   "high"   = bugs that WILL cause a crash, data loss, or security breach at runtime. Examples: SQL injection, missing await on async call, null dereference, division by zero, assignment instead of comparison (= vs ===).
-            → Each high bug deducts 25 points from the health score (100 − 25 per high bug).
+            → Each high bug deducts 20 points from the health score (100 − 20 per high bug).
   "medium" = bugs that produce WRONG results silently without crashing. Examples: off-by-one errors, wrong operator (=+ instead of +=), unhandled error callbacks, logic that returns incorrect values.
-            → Each medium bug deducts 12 points from the health score.
+            → Each medium bug deducts 8 points from the health score.
   "low"    = code that works but has a clear quality issue. Examples: unused variables, unreachable code, redundant conditions.
             → Low bugs do NOT affect the health score — they are informational only.
-  NEVER use "high" for style issues. NEVER use "low" for runtime crashes. The severity must match these definitions exactly — health score accuracy depends on it.
-  CONSISTENCY CHECK: before assigning severity, ask yourself "will this crash at runtime?" → high. "Will this give wrong output silently?" → medium. "Does it still work correctly?" → low.
 
 Respond ONLY in strict JSON with exactly these five keys:
 - "bugsFound": array of objects each with:
-    - "issue": (${locale === 'km' ? 'string in Khmer (ភាសាខ្មែរ)' : 'string'})
+    - "issue_en": string in English
+    - "issue_km": string in Khmer (ភាសាខ្មែរ)
     - "severity": ("high"|"medium"|"low")
     - "lineNumber": (integer or null)
     - "confidence": (integer 0-100 — only report bugs with confidence ≥ 70). EMPTY ARRAY if no real bugs or mode is 'refactor'.
 - "fixedCode": fully corrected production-quality code. No markdown fences.
-- "commentedCode": fixedCode with JSDoc-style comment above each function. No markdown fences.
-- "explanation": a clear, structured explanation written like a senior developer teaching a junior. Use this exact format:
+- "commentedCode": fixedCode with JSDoc-style comments (in English) above each function. No markdown fences.
+- "explanation_en": a clear, structured explanation written like a senior developer teaching a junior in English. Use this exact format:
 
     OVERVIEW: [One sentence — what this code is supposed to do]
 
@@ -150,15 +132,16 @@ Respond ONLY in strict JSON with exactly these five keys:
     - Every bug must have its own LINE block.
     - Keep each bullet point to 1-2 sentences maximum.
     - If code was already clean, write: "OVERVIEW: This code is correct. Here is what it does well:" then explain each part.
-    ${locale === 'km' ? 'Write entirely in Khmer (ភាសាខ្មែរ). Keep the same format structure (OVERVIEW, LINE, Problem, Fix, Impact, REMEMBER) but translate all labels and content to Khmer.' : ''}
+- "explanation_km": the exact same explanation structured layout translated to Khmer (ភាសាខ្មែរ) preserving the exact format headers (OVERVIEW, LINE, Problem, Fix, Impact, REMEMBER) and rules. Keep English code identifiers wrapped in backticks.
 - "improvementSuggestions": array of exactly 3 objects, each with:
-    - "tip": the actionable suggestion text. ${locale === 'km' ? 'Write in Khmer (ភាសាខ្មែរ).' : ''}
+    - "tip_en": the actionable suggestion text in English.
+    - "tip_km": the actionable suggestion text in Khmer (ភាសាខ្មែរ).
     - "youtubeQuery": a short English search query (4-6 words) for a YouTube tutorial. Always English. Example: "javascript async await explained", "python error handling best practices".
     - "mdnQuery": a short English search query (3-5 words) for MDN Web Docs. Always English. Example: "Promise async await", "array methods javascript".`;
 
   try {
     // Check cache first — skip if wasAlreadyFixed (re-analysis context matters)
-    const cacheKey = hashKey(`${language}:${mode}:${locale}:${codeInput}`);
+    const cacheKey = hashKey(`${language}:${mode}:${codeInput}`);
     if (!wasAlreadyFixed && previousBugs.length === 0) {
       const cached = getCached(cacheKey);
       if (cached) {

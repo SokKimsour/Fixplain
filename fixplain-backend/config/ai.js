@@ -98,7 +98,7 @@ export async function callGemini(systemPrompt, userMessage) {
   if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set');
 
   const response = await genai.models.generateContent({
-    model: 'gemini-2.5-flash-preview-04-17',
+    model: 'gemini-2.5-flash',
     contents: `${systemPrompt}\n\n${userMessage}`,
     config: {
       temperature: 0,
@@ -110,12 +110,12 @@ export async function callGemini(systemPrompt, userMessage) {
   return safeParseJSON(response.text);
 }
 
-// ── Fallback chain: Groq → Cerebras → Gemini ─────────────────────────────────
+// ── Fallback chain: Gemini → Groq → Cerebras ─────────────────────────────────
 export async function callWithFallback(systemPrompt, userMessage) {
   const providers = [
+    { name: 'Gemini', fn: () => withTimeout(callGemini(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Gemini') },
     { name: 'Groq', fn: () => withTimeout(callGroq(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Groq') },
     { name: 'Cerebras', fn: () => withTimeout(callCerebras(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Cerebras') },
-    { name: 'Gemini', fn: () => withTimeout(callGemini(systemPrompt, userMessage), PROVIDER_TIMEOUT_MS, 'Gemini') },
   ];
 
   const errors = [];

@@ -17,7 +17,7 @@ export const LANGUAGES = [
 ];
 
 export const MODES = ['both', 'fix', 'refactor'];
-export const TAB_KEYS = ['bugs', 'fixed', 'commented', 'explain', 'suggest'];
+export const TAB_KEYS = ['bugs', 'fixed', 'commented', 'explain', 'suggest', 'playground'];
 
 export const EXT_MAP = {
   js: 'javascript',

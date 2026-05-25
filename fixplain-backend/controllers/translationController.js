@@ -1,5 +1,4 @@
-import { groqClients, nextGroqClient } from '../config/ai.js';
-import { safeParseJSON, withTimeout } from '../utils/helpers.js';
+import { callGemini } from '../config/ai.js';
 
 export async function translateText(req, res) {
   const { explain, suggest, targetLocale } = req.body;
@@ -10,23 +9,7 @@ export async function translateText(req, res) {
   const userMessage = JSON.stringify({ explain, suggest });
 
   try {
-    if (!groqClients.length) throw new Error('No Groq API keys configured');
-    const client = nextGroqClient();
-    const chat = await withTimeout(
-      client.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        model: 'llama-3.1-8b-instant',
-        response_format: { type: 'json_object' },
-        temperature: 0,
-        max_tokens: 2000,
-      }),
-      15000,
-      'Translate'
-    );
-    const parsed = safeParseJSON(chat.choices[0].message.content);
+    const parsed = await callGemini(systemPrompt, userMessage);
     res.json({ explain: parsed.explain || '', suggest: parsed.suggest || [] });
   } catch (err) {
     console.error('[Translate]', err.message);

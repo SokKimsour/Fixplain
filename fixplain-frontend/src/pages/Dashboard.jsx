@@ -16,6 +16,7 @@ import YouTubeCard from '../components/YouTubeCard';
 import { Panel, PanelHeader, Dot } from '../components/UI/Panel';
 import { SeverityBadge } from '../components/UI/SeverityBadge';
 import { CopyBtn, UseCodeBtn } from '../components/UI/Buttons';
+import PlaygroundView from '../components/PlaygroundView';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 import { LANGUAGES, MODES, TAB_KEYS } from '../constants/languages';
@@ -65,7 +66,7 @@ export default function Dashboard() {
   const isMobile = screenW < 768;
   const isTablet = screenW >= 768 && screenW < 1024;
   const bugs = normalizeBugs(analysisResult?.bugsFound);
-  const tabAccent = { bugs: c.red, fixed: c.green, commented: c.amber, explain: c.blue, suggest: c.purple };
+  const tabAccent = { bugs: c.red, fixed: c.green, commented: c.amber, explain: c.blue, suggest: c.purple, playground: c.teal };
   const langForHL = {
     nodejs: 'javascript',
     csharp: 'csharp',
@@ -316,7 +317,7 @@ export default function Dashboard() {
           language: effectiveLang,
           mode,
           locale,
-          previousBugs: analysisResult ? normalizeBugs(analysisResult.bugsFound).map(b => b.issue) : [],
+          previousBugs: analysisResult ? normalizeBugs(analysisResult.bugsFound).map(b => b.issue_en || b.issue) : [],
           wasAlreadyFixed: wasFixed,
         }),
       });
@@ -365,43 +366,7 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  // When the UI locale changes AND a result already exists, translate explanation + suggestions
-  useEffect(() => {
-    const result = analysisResult;
-    if (!result || (!result.explain && !result.explanation)) return;
 
-    showToast(locale === 'km' ? 'កំពុងបកប្រែ...' : 'Translating...');
-
-    const explain = result.explain || result.explanation || '';
-    const suggest = result.suggest || result.improvementSuggestions || [];
-
-    const API = 'https://ffxplain-api.onrender.com';
-    fetch(`${API}/api/translate-text`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ explain, suggest, targetLocale: locale }),
-    })
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(translatedData => {
-        setAnalysisResult(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            explain: translatedData.explain,
-            suggest: translatedData.suggest,
-            explanation: translatedData.explain,
-            improvementSuggestions: translatedData.suggest,
-            fixedCode: prev.fixedCode,
-            commentedCode: prev.commentedCode,
-            bugs: prev.bugs || prev.bugsFound,
-            bugsFound: prev.bugsFound,
-            _locale: locale,
-          };
-        });
-      })
-      .catch(() => { });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale]);
 
   // Keyboard tab navigation
   useEffect(() => {
@@ -559,10 +524,10 @@ export default function Dashboard() {
         <h1 style={{ fontSize: isMobile ? 'clamp(20px,6vw,28px)' : 'clamp(26px,4vw,38px)', fontWeight: 600, letterSpacing: locale === 'km' ? 0 : '-1px', lineHeight: 1.3, margin: 0, fontFamily: tf }}>
           {locale === 'km' ? t.tagline : <>Fix it. <span style={{ color: c.teal }}>Explain it.</span> Learn from it.</>}
         </h1>
-        {/* Powered by Groq */}
+        {/* Powered by Gemini */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 8 }}>
           <span style={{ fontFamily: mono, fontSize: 24, color: c.text3 }}>{locale === 'km' ? 'ដំណើរការដោយ' : 'Powered by'}</span>
-          <span style={{ fontFamily: mono, fontSize: 24, color: c.teal, fontWeight: 600 }}>Groq</span>
+          <span style={{ fontFamily: mono, fontSize: 24, color: c.teal, fontWeight: 600 }}>Gemini</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap', padding: '0 1rem' }}>
           <span style={{ fontFamily: mono, fontSize: 12, color: c.text3 }}>{t.tryExample}:</span>
@@ -891,7 +856,7 @@ export default function Dashboard() {
                           <div key={i} style={{ padding: '10px 14px', background: c.redGlow, borderLeft: `2px solid ${c.red}`, borderRadius: '0 8px 8px 0' }}>
                             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
                               <span style={{ color: c.red, marginTop: 1, flexShrink: 0 }}>✗</span>
-                              <span style={{ fontFamily: mono, fontSize: 16, color: c.text1, lineHeight: 1.65, flex: 1 }}>{b.issue}</span>
+                              <span style={{ fontFamily: tf, fontSize: 16, color: c.text1, lineHeight: 1.65, flex: 1 }}>{locale === 'km' ? (b.issue_km || b.issue) : (b.issue_en || b.issue)}</span>
                               <SeverityBadge severity={b.severity} isDark={isDark} label={t.severity[b.severity] || b.severity} />
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -1002,18 +967,8 @@ export default function Dashboard() {
                 {/* EXPLANATION */}
                 {activeTab === 'explain' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {analysisResult._locale && analysisResult._locale !== locale && (
-                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 14, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span>⚠</span>
-                        <span>
-                          {locale === 'km'
-                            ? 'ការពន្យល់នេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ'
-                            : 'This explanation is in Khmer — click ↺ Re-analyze to get it in English'}
-                        </span>
-                      </div>
-                    )}
                     {(() => {
-                      const raw = analysisResult.explanation || '';
+                      const raw = (locale === 'km' ? analysisResult.explanation_km : analysisResult.explanation_en) || analysisResult.explanation || '';
                       const lines = raw.split('\n').filter(l => l.trim());
                       const blocks = [];
                       let currentBlock = null;
@@ -1085,19 +1040,8 @@ export default function Dashboard() {
                 {/* SUGGESTIONS */}
                 {activeTab === 'suggest' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {analysisResult._locale && analysisResult._locale !== locale && (
-                      <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: `1px solid ${c.amber}`, borderRadius: 8, fontFamily: tf, fontSize: 14, color: c.amber, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span>⚠</span>
-                        <span>
-                          {locale === 'km'
-                            ? 'ការណែនាំនេះជាភាសាអង់គ្លេស — ចុច ↺ វិភាគម្តងទៀត ដើម្បីទទួលបានភាសាខ្មែរ'
-                            : 'These suggestions are in Khmer — click ↺ Re-analyze to get them in English'}
-                        </span>
-                      </div>
-                    )}
-
                     {analysisResult.improvementSuggestions?.map((s, i) => {
-                      const tip = typeof s === 'string' ? s : s?.tip;
+                      const tip = typeof s === 'string' ? s : (locale === 'km' ? s?.tip_km : s?.tip_en) || s?.tip;
                       return (
                         <div key={i} style={{ padding: '12px 14px', background: c.bgSurface, borderRadius: 10, border: `1px solid ${c.borderSoft}`, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                           <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: isDark ? 'rgba(167,139,250,0.1)' : 'rgba(124,58,237,0.08)', color: c.purple, fontSize: 12, fontWeight: 600, fontFamily: mono, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1111,7 +1055,7 @@ export default function Dashboard() {
                     {(() => {
                       const ytItems = (analysisResult.improvementSuggestions || [])
                         .filter(s => typeof s === 'object' && s?.youtubeQuery)
-                        .map(s => ({ query: s.youtubeQuery, tip: s.tip }));
+                        .map(s => ({ query: s.youtubeQuery, tip: (locale === 'km' ? s.tip_km : s.tip_en) || s.tip }));
                       const mdnLinks = (analysisResult.improvementSuggestions || [])
                         .filter(s => typeof s === 'object' && s?.mdnQuery)
                         .map(s => ({ label: s.mdnQuery, url: `https://developer.mozilla.org/search?q=${encodeURIComponent(s.mdnQuery)}` }));
@@ -1162,6 +1106,11 @@ export default function Dashboard() {
                       );
                     })()}
                   </div>
+                )}
+
+                {/* PLAYGROUND */}
+                {activeTab === 'playground' && (
+                  <PlaygroundView code={analysisResult.fixedCode || codeInput} language={language} c={c} tf={tf} mono={mono} />
                 )}
 
                 {/* Bottom actions */}
@@ -1231,7 +1180,7 @@ export default function Dashboard() {
                     <span style={{ backgroundColor: borderCol, color: '#ffffff', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' }}>{(b.severity || 'MEDIUM').toUpperCase()}</span>
                     {b.lineNumber && <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>Line {b.lineNumber}</span>}
                   </div>
-                  <div style={{ color: '#0f172a' }}>{b.issue}</div>
+                  <div style={{ color: '#0f172a' }}>{locale === 'km' ? (b.issue_km || b.issue) : (b.issue_en || b.issue)}</div>
                 </div>
               );
             })}
@@ -1241,14 +1190,13 @@ export default function Dashboard() {
           <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '6px', color: '#334155', border: '1px solid #e2e8f0', fontSize: '15px', lineHeight: '1.6', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <div style={{ whiteSpace: 'pre-wrap', marginBottom: '16px' }}>
               {(() => {
-                const expDetails = analysisResult.explanation || '';
-                return typeof expDetails === 'string' ? expDetails : (expDetails[locale] || expDetails.en || '');
+                const expDetails = (locale === 'km' ? analysisResult.explanation_km : analysisResult.explanation_en) || analysisResult.explanation || '';
+                return expDetails;
               })()}
             </div>
             <ul style={{ paddingLeft: 20, margin: 0 }}>
               {(analysisResult.improvementSuggestions || []).map((s, i) => {
-                const tipData = typeof s === 'string' ? s : s?.tip;
-                const tip = typeof tipData === 'string' ? tipData : (tipData?.[locale] || tipData?.en || '');
+                const tip = typeof s === 'string' ? s : (locale === 'km' ? s?.tip_km : s?.tip_en) || s?.tip;
                 return <li key={i} style={{ marginBottom: 8 }}>{tip}</li>;
               })}
             </ul>
