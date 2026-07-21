@@ -321,7 +321,10 @@ export default function Dashboard() {
           wasAlreadyFixed: wasFixed,
         }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || t.errorMsg);
+      }
       const data = await res.json();
       data._locale = locale;
       setAnalysisResult(data);
@@ -335,8 +338,8 @@ export default function Dashboard() {
       setHistory(updated);
       localStorage.setItem('fixplain_history', JSON.stringify(updated));
       setCooldown(3);
-    } catch {
-      setError(t.errorMsg);
+    } catch (err) {
+      setError(err?.message || t.errorMsg);
       setCooldown(0);
     } finally {
       clearTimeout(warmupTimer);

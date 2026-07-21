@@ -27,7 +27,7 @@ export function nextGroqClient() {
 export const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 export const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 
-const PROVIDER_TIMEOUT_MS = 20000;
+const PROVIDER_TIMEOUT_MS = 35000;
 
 // ── Provider 1: Groq — round-robin across multiple keys ───────────────────────
 export async function callGroq(systemPrompt, userMessage) {
@@ -93,12 +93,12 @@ export async function callCerebras(systemPrompt, userMessage) {
   return safeParseJSON(data.choices[0].message.content);
 }
 
-// ── Provider 3: Gemini 2.5 Flash (official @google/genai SDK) ────────────────
+// ── Provider 3: Gemini 2.0 Flash (official @google/genai SDK) ────────────────
 export async function callGemini(systemPrompt, userMessage) {
   if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not set');
 
   const response = await genai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.0-flash',
     contents: `${systemPrompt}\n\n${userMessage}`,
     config: {
       temperature: 0,
