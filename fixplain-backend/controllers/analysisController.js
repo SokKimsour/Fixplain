@@ -165,7 +165,7 @@ Respond ONLY in strict JSON with exactly these five keys:
     res.json(result);
   } catch (err) {
     console.error('All providers failed:', err.message);
-    res.status(500).json({ error: 'AI analysis failed. All providers are currently unavailable.' });
+    res.status(500).json({ error: `AI analysis failed: ${err.message}` });
   }
 }
 
